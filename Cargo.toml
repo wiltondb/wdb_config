@@ -1,0 +1,8 @@
+[package]
+name = "wdb_config"
+version = "1.0.0"
+authors = ["alex@staticlibs.net"]
+edition = "2018"
+
+[dependencies]
+nwg = {version = "1.0.12", package = "native-windows-gui", features = ["all", "flexbox"]}
