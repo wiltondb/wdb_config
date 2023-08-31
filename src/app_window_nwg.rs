@@ -27,7 +27,7 @@ impl nwg::NativeUi<AppWindowNwg> for AppWindow {
         let handle_events = move |evt, _evt_data, handle| {
             if let Some(evt_ui) = evt_ui.upgrade() {
                 for eh in evt_ui.events.iter() {
-                    if handle == eh.control && evt == eh.event {
+                    if handle == eh.control_handle && evt == eh.event {
                         (eh.handler)(&evt_ui);
                         break;
                     }

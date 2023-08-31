@@ -1,4 +1,7 @@
 
+use std::cell::RefCell;
+use std::thread;
+
 use super::*;
 
 #[derive(Default)]
@@ -22,7 +25,8 @@ pub struct AppWindow {
 
     pub events: Vec<events::EventHandler<Self>>,
 
-    pub dialog_notice: nwg::Notice,
+    pub dialog_notice: notice::SyncNotice,
+    dialog_data: RefCell<Option<thread::JoinHandle<String>>>,
 }
 
 impl AppWindow {
@@ -88,7 +92,22 @@ impl AppWindow {
     }
 
     pub fn open_connect_dialog(&self) {
-        about_dialog::AboutDialog::popup(self.dialog_notice.sender());
+        self.window.set_enabled(false);
+        *self.dialog_data.borrow_mut() = Some(about_dialog::AboutDialog::popup(self.dialog_notice.sender()));
+    }
+
+    pub fn read_dialog_output(&self) {
+        self.window.set_enabled(true);
+        self.dialog_notice.receive();
+
+        let data = self.dialog_data.borrow_mut().take();
+        match data {
+            Some(handle) => {
+                let dialog_result = handle.join().unwrap();
+                self.status_bar.set_text(0, &dialog_result);
+            },
+            None => {}
+        }
     }
 
     /*

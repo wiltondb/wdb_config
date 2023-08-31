@@ -11,6 +11,7 @@ mod app_window_layout;
 mod app_window_nwg;
 
 mod events;
+mod notice;
 
 use nwg::NativeUi;
 

@@ -18,7 +18,7 @@ fn create_window(data: &mut AppWindow) -> Result<(), nwg::NwgError> {
         .title("WiltonDB Configuration Tool")
         .build(&mut data.window)?;
     events::builder()
-        .control(data.window.handle)
+        .control(&data.window)
         .event(nwg::Event::OnWindowClose)
         .handler(AppWindow::exit)
         .build(&mut data.events)?;
@@ -36,7 +36,7 @@ fn create_menu(data: &mut AppWindow) -> Result<(), nwg::NwgError> {
         .text("Connect to DB")
         .build(&mut data.file_connect_menu_item)?;
     events::builder()
-        .control(data.file_connect_menu_item.handle)
+        .control(&data.file_connect_menu_item)
         .event(nwg::Event::OnMenuItemSelected)
         .handler(AppWindow::open_connect_dialog)
         .build(&mut data.events)?;
@@ -45,7 +45,7 @@ fn create_menu(data: &mut AppWindow) -> Result<(), nwg::NwgError> {
         .text("Exit")
         .build(&mut data.file_exit_menu_item)?;
     events::builder()
-        .control(data.file_exit_menu_item.handle)
+        .control(&data.file_exit_menu_item)
         .event(nwg::Event::OnMenuItemSelected)
         .handler(AppWindow::exit)
         .build(&mut data.events)?;
@@ -82,7 +82,7 @@ pub fn build(data: &mut AppWindow) -> Result<(), nwg::NwgError> {
         .parent(&data.window)
         .build(&mut data.button2)?;
     events::builder()
-        .control(data.button2.handle)
+        .control(&data.button2)
         .event(nwg::Event::OnButtonClick)
         .handler(AppWindow::load_data)
         .build(&mut data.events)?;
@@ -111,10 +111,14 @@ pub fn build(data: &mut AppWindow) -> Result<(), nwg::NwgError> {
         .font(Some(&data.small_font))
         .build(&mut data.status_bar)?;
 
-    nwg::Notice::builder()
+    notice::SyncNotice::builder()
         .parent(&data.window)
         .build(&mut data.dialog_notice)?;
-
+    events::builder()
+        .control(&data.dialog_notice.notice)
+        .event(nwg::Event::OnNotice)
+        .handler(AppWindow::read_dialog_output)
+        .build(&mut data.events)?;
 
     Ok(())
 }

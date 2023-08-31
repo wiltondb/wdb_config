@@ -10,7 +10,7 @@ pub fn build(data: &mut AboutDialog) -> Result<(), nwg::NwgError> {
         .title("About")
         .build(&mut data.window)?;
     events::builder()
-        .control(data.window.handle)
+        .control(&data.window)
         .event(nwg::Event::OnWindowClose)
         .handler(AboutDialog::close)
         .build(&mut data.events)?;

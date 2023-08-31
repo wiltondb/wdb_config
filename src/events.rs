@@ -1,13 +1,13 @@
 
 
 pub struct EventHandler<W> {
-    pub control: nwg::ControlHandle,
+    pub control_handle: nwg::ControlHandle,
     pub event: nwg::Event,
     pub handler: fn(&W) -> ()
 }
 
 pub struct EventBuilder<W> {
-    control: Option<nwg::ControlHandle>,
+    control_handle: Option<nwg::ControlHandle>,
     event: Option<nwg::Event>,
     handler: Option<fn(&W) -> ()>
 }
@@ -15,14 +15,14 @@ pub struct EventBuilder<W> {
 impl<W> EventBuilder<W> {
     pub fn new() -> Self {
         Self {
-            control: None,
+            control_handle: None,
             event: None,
             handler: None
         }
     }
 
-    pub fn control(mut self, control: nwg::ControlHandle) -> Self {
-        self.control = Some(control);
+    pub fn control<C: Into<nwg::ControlHandle>>(mut self, control: C) -> Self {
+        self.control_handle = Some(control.into());
         self
     }
 
@@ -37,25 +37,24 @@ impl<W> EventBuilder<W> {
     }
 
     pub fn build(self, events: &mut Vec<EventHandler<W>>) -> Result<(), nwg::NwgError> {
-        match self.control {
-            None => return Err(nwg::NwgError::EventsBinding("Control not specified".to_string())),
-            Some(control) => {
-                match self.event {
-                    None => return Err(nwg::NwgError::EventsBinding("Event not specified".to_string())),
-                    Some(event) => {
-                        match self.handler {
-                            None => return Err(nwg::NwgError::EventsBinding("Handler not specified".to_string())),
-                            Some(handler) => {
-                                events.push(EventHandler {
-                                    control, event, handler
-                                });
-                                Ok(())
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        let control_handle = match self.control_handle {
+            None => return Err(nwg::NwgError::events_binding("Control not specified".to_string())),
+            Some(ch) => Ok::<nwg::ControlHandle, nwg::NwgError>(ch)
+        }?;
+        let event = match self.event {
+            None => return Err(nwg::NwgError::events_binding("Event not specified".to_string())),
+            Some(ev) => Ok::<nwg::Event, nwg::NwgError>(ev)
+        }?;
+        let handler = match self.handler {
+            None => return Err(nwg::NwgError::events_binding("Handler not specified".to_string())),
+            Some(h) => Ok::<fn(&W) -> (), nwg::NwgError>(h)
+        }?;
+
+        events.push(EventHandler {
+            control_handle, event, handler
+        });
+
+        Ok(())
     }
 }
 

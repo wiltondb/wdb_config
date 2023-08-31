@@ -5,9 +5,12 @@ use std::thread;
 use nwg::NativeUi;
 
 use super::*;
+use crate::notice::SyncNoticeSender;
 
 #[derive(Default)]
 pub struct AboutDialog {
+    notice_sender: Option<SyncNoticeSender>,
+
     pub response: RefCell<Option<String>>,
 
     //#[nwg_control(size: (300, 115), position: (650, 300), title: "A dialog", flags: "WINDOW|VISIBLE")]
@@ -27,16 +30,22 @@ pub struct AboutDialog {
 
 impl AboutDialog {
 
+    fn new(notice_sender: SyncNoticeSender) -> Self {
+        Self {
+            notice_sender: Some(notice_sender),
+            ..Default::default()
+        }
+
+    }
+
     /// Create the dialog UI on a new thread. The dialog result will be returned by the thread handle.
     /// To alert the main GUI that the dialog completed, this function takes a notice sender object.
-    pub fn popup(sender: nwg::NoticeSender) -> thread::JoinHandle<String> {
+    pub fn popup(notice_sender: SyncNoticeSender) -> thread::JoinHandle<String> {
         thread::spawn(move || {
             // Create the UI just like in the main function
-            let app = AboutDialog::build_ui(Default::default()).expect("Failed to build UI");
+            let data = AboutDialog::new(notice_sender);
+            let app = AboutDialog::build_ui(data).expect("Failed to build UI");
             nwg::dispatch_thread_events();
-
-            // Notice the main thread that the dialog completed
-            sender.notice();
 
             // Return the dialog data
             app.response.take().unwrap_or("Cancelled!".to_owned())
@@ -44,6 +53,7 @@ impl AboutDialog {
     }
 
     pub fn close(&self) {
+        self.notice_sender.as_ref().expect("Notice sender not initialized").send();
         nwg::stop_thread_dispatch();
     }
 
