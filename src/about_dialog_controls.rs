@@ -1,5 +1,5 @@
 
-use super::*;
+use crate::*;
 use about_dialog::AboutDialog;
 
 pub fn build(data: &mut AboutDialog) -> Result<(), nwg::NwgError> {
@@ -21,9 +21,14 @@ pub fn build(data: &mut AboutDialog) -> Result<(), nwg::NwgError> {
         .build(&mut data.choice_yes)?;
 
     nwg::Button::builder()
-        .text("No")
+        .text("Connect")
         .parent(&data.window)
-        .build(&mut data.choice_no)?;
+        .build(&mut data.connect_button)?;
+    events::builder()
+        .control(&data.connect_button)
+        .event(nwg::Event::OnButtonClick)
+        .handler(AboutDialog::connect)
+        .build(&mut data.events)?;
 
     Ok(())
 }

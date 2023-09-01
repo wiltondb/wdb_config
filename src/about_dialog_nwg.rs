@@ -2,7 +2,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::Deref;
 
-use super::*;
+use crate::*;
 use about_dialog::AboutDialog;
 
 pub struct AboutDialogNwg {

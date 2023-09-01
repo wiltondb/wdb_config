@@ -6,12 +6,13 @@ mod about_dialog_layout;
 mod about_dialog_nwg;
 
 mod app_window;
-mod app_window_controls;
-mod app_window_layout;
+mod app_window_ui;
 mod app_window_nwg;
 
+mod dialogs;
 mod events;
 mod notice;
+mod ui;
 
 use nwg::NativeUi;
 

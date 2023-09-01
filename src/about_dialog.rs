@@ -1,60 +1,46 @@
 
 use std::cell::RefCell;
 use std::thread;
+use std::thread::JoinHandle;
 
 use nwg::NativeUi;
+use postgres::{Client, NoTls};
 
-use super::*;
-use crate::notice::SyncNoticeSender;
+use crate::*;
+use notice::SyncNoticeSender;
 
 #[derive(Default)]
 pub struct AboutDialog {
     notice_sender: Option<SyncNoticeSender>,
 
-    pub response: RefCell<Option<String>>,
+    pub response: RefCell<String>,
 
-    //#[nwg_control(size: (300, 115), position: (650, 300), title: "A dialog", flags: "WINDOW|VISIBLE")]
-    //#[nwg_events( OnWindowClose: [YesNoDialog::close] )]
     pub window: nwg::Window,
-
-    //#[nwg_control(text: "YES", position: (10, 10), size: (130, 95))]
-    //#[nwg_events( OnButtonClick: [YesNoDialog::choose(SELF, CTRL)] )]
     pub choice_yes: nwg::Button,
+    pub connect_button: nwg::Button,
 
-    //#[nwg_control(text: "NO", position: (160, 10), size: (130, 95), focus: true)]
-    //#[nwg_events( OnButtonClick: [YesNoDialog::choose(SELF, CTRL)] )]
-    pub choice_no: nwg::Button,
-
-    pub events: Vec<events::EventHandler<Self>>,
+    pub events: events::Events<Self>,
 }
 
 impl AboutDialog {
 
-    fn new(notice_sender: SyncNoticeSender) -> Self {
-        Self {
-            notice_sender: Some(notice_sender),
-            ..Default::default()
-        }
-
-    }
-
-    /// Create the dialog UI on a new thread. The dialog result will be returned by the thread handle.
-    /// To alert the main GUI that the dialog completed, this function takes a notice sender object.
-    pub fn popup(notice_sender: SyncNoticeSender) -> thread::JoinHandle<String> {
-        thread::spawn(move || {
-            // Create the UI just like in the main function
-            let data = AboutDialog::new(notice_sender);
-            let app = AboutDialog::build_ui(data).expect("Failed to build UI");
-            nwg::dispatch_thread_events();
-
-            // Return the dialog data
-            app.response.take().unwrap_or("Cancelled!".to_owned())
-        })
-    }
-
     pub fn close(&self) {
         self.notice_sender.as_ref().expect("Notice sender not initialized").send();
         nwg::stop_thread_dispatch();
+    }
+
+    pub fn connect(&self) {
+        //thread::spawn(move || {
+            let mut client = Client::connect("host=127.0.0.1 user=wilton password=wilton", NoTls).expect("Connection failure");
+
+            for row in client.query("show listen_addresses", &[]).expect("Query failure") {
+                let val: String = row.get("listen_addresses");
+                let mut data = self.response.borrow_mut();
+                *data = val;
+            }
+
+            client.close().expect("Connection close error");
+        //});
     }
 
     /*
@@ -70,4 +56,22 @@ impl AboutDialog {
     }
      */
 
+}
+
+impl dialogs::PopupDialog<String> for AboutDialog {
+    fn popup(notice_sender: SyncNoticeSender) -> JoinHandle<String> {
+        thread::spawn(move || {
+            let data = Self {
+                notice_sender: Some(notice_sender),
+                ..Default::default()
+            };
+            let dialog = Self::build_ui(data).expect("Failed to build UI");
+            nwg::dispatch_thread_events();
+            dialog.result()
+        })
+    }
+
+    fn result(&self) -> String {
+        self.response.take()
+    }
 }

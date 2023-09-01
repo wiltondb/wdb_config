@@ -1,4 +1,5 @@
 
+pub type Events<W> = Vec<EventHandler<W>>;
 
 pub struct EventHandler<W> {
     pub control_handle: nwg::ControlHandle,

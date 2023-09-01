@@ -1,32 +1,16 @@
 
 use std::cell::RefCell;
-use std::thread;
+use std::thread::JoinHandle;
 
-use super::*;
+use crate::*;
+use dialogs::PopupDialog;
+use app_window_ui::AppWindowUi;
 
 #[derive(Default)]
 pub struct AppWindow {
-    pub window: nwg::Window,
-    pub button1: nwg::Button,
-    pub button2: nwg::Button,
-    pub data_view: nwg::ListView,
-    pub button5: nwg::Button,
-    pub button6: nwg::Button,
-    pub status_bar: nwg::StatusBar,
+    pub ui: AppWindowUi,
 
-    pub file_menu: nwg::Menu,
-    pub file_connect_menu_item: nwg::MenuItem,
-    pub file_exit_menu_item: nwg::MenuItem,
-    pub help_menu: nwg::Menu,
-    pub help_about_menu_item: nwg::MenuItem,
-    pub help_website_menu_item: nwg::MenuItem,
-
-    pub small_font: nwg::Font,
-
-    pub events: Vec<events::EventHandler<Self>>,
-
-    pub dialog_notice: notice::SyncNotice,
-    dialog_data: RefCell<Option<thread::JoinHandle<String>>>,
+    dialog_data: RefCell<Option<JoinHandle<String>>>,
 }
 
 impl AppWindow {
@@ -40,7 +24,7 @@ impl AppWindow {
     }
 
     pub fn load_data(&self) {
-        let dv = &self.data_view;
+        let dv = &self.ui.data_view;
 
         dv.insert_column("Name");
         dv.set_column_sort_arrow(0, Some(nwg::ListViewColumnSortArrow::Down));
@@ -92,19 +76,19 @@ impl AppWindow {
     }
 
     pub fn open_connect_dialog(&self) {
-        self.window.set_enabled(false);
-        *self.dialog_data.borrow_mut() = Some(about_dialog::AboutDialog::popup(self.dialog_notice.sender()));
+        self.ui.window.set_enabled(false);
+        *self.dialog_data.borrow_mut() = Some(about_dialog::AboutDialog::popup(self.ui.dialog_notice.sender()));
     }
 
     pub fn read_dialog_output(&self) {
-        self.window.set_enabled(true);
-        self.dialog_notice.receive();
+        self.ui.window.set_enabled(true);
+        self.ui.dialog_notice.receive();
 
         let data = self.dialog_data.borrow_mut().take();
         match data {
             Some(handle) => {
                 let dialog_result = handle.join().unwrap();
-                self.status_bar.set_text(0, &dialog_result);
+                self.ui.status_bar.set_text(0, &dialog_result);
             },
             None => {}
         }

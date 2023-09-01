@@ -5,7 +5,7 @@ use nwg::stretch::style::Dimension;
 use nwg::stretch::style::FlexDirection;
 //use nwg::stretch::style::AlignSelf;
 
-use super::*;
+use crate::*;
 use about_dialog::AboutDialog;
 
 //const FIFTY_PC: D = D::Percent(0.5);
@@ -20,7 +20,7 @@ pub fn build(data: &mut AboutDialog) -> Result<(), nwg::NwgError> {
         .flex_direction(FlexDirection::Row)
         .child(&data.choice_yes)
         .child_size(Size { width: PT_50, height: PT_50 })
-        .child(&data.choice_no)
+        .child(&data.connect_button)
         .child_size(Size { width: PT_50, height: PT_50 })
         .child_flex_grow(1.0)
         .build(&root_layout)?;

@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::Deref;
 
-use super::*;
+use crate::*;
 use app_window::AppWindow;
 
 pub struct AppWindowNwg {
@@ -14,8 +14,7 @@ pub struct AppWindowNwg {
 impl nwg::NativeUi<AppWindowNwg> for AppWindow {
     fn build_ui(mut data: AppWindow) -> Result<AppWindowNwg, nwg::NwgError> {
 
-        app_window_controls::build(&mut data)?;
-        app_window_layout::build(&mut data)?;
+        data.ui.build()?;
 
         let ui = AppWindowNwg {
             inner:  Rc::new(data),
@@ -26,7 +25,7 @@ impl nwg::NativeUi<AppWindowNwg> for AppWindow {
         let evt_ui = Rc::downgrade(&ui.inner);
         let handle_events = move |evt, _evt_data, handle| {
             if let Some(evt_ui) = evt_ui.upgrade() {
-                for eh in evt_ui.events.iter() {
+                for eh in evt_ui.ui.events.iter() {
                     if handle == eh.control_handle && evt == eh.event {
                         (eh.handler)(&evt_ui);
                         break;
@@ -35,7 +34,7 @@ impl nwg::NativeUi<AppWindowNwg> for AppWindow {
             }
         };
 
-        *ui.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&ui.window.handle, handle_events));
+        *ui.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&ui.ui.window.handle, handle_events));
 
         return Ok(ui);
     }
