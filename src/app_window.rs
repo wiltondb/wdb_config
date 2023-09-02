@@ -1,16 +1,21 @@
 
-use std::cell::RefCell;
-use std::thread::JoinHandle;
+use std::os::windows::process::CommandExt;
+use std::process::Command;
+use std::process::Stdio;
 
 use crate::*;
+use dialogs::DialogJoiner;
+use dialogs::DialogUi;
 use dialogs::PopupDialog;
+
+use about_dialog::AboutDialog;
 use app_window_ui::AppWindowUi;
 
 #[derive(Default)]
 pub struct AppWindow {
     pub ui: AppWindowUi,
 
-    dialog_data: RefCell<Option<JoinHandle<String>>>,
+    about_dialog_joiner: DialogJoiner<()>,
 }
 
 impl AppWindow {
@@ -75,23 +80,30 @@ impl AppWindow {
         dv.update_item(4, nwg::InsertListViewItem { image: Some(1), ..Default::default() });
     }
 
-    pub fn open_connect_dialog(&self) {
-        self.ui.window.set_enabled(false);
-        *self.dialog_data.borrow_mut() = Some(about_dialog::AboutDialog::popup(self.ui.dialog_notice.sender()));
+    pub fn open_about_dialog(&self) {
+        self.ui.window().set_enabled(false);
+        let join_handle = AboutDialog::popup(self.ui.dialog_notice.sender());
+        self.about_dialog_joiner.set_join_handle(join_handle);
     }
 
     pub fn read_dialog_output(&self) {
-        self.ui.window.set_enabled(true);
+        self.ui.window().set_enabled(true);
         self.ui.dialog_notice.receive();
+        let _ = self.about_dialog_joiner.await_result();
+        //self.ui.status_bar.set_text(0, &res);
+    }
 
-        let data = self.dialog_data.borrow_mut().take();
-        match data {
-            Some(handle) => {
-                let dialog_result = handle.join().unwrap();
-                self.ui.status_bar.set_text(0, &dialog_result);
-            },
-            None => {}
-        }
+    pub fn open_website(&self) {
+        let create_no_window: u32 = 0x08000000;
+        let _ = Command::new("cmd")
+            .arg("/c")
+            .arg("start")
+            .arg("https://wiltondb.com")
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .creation_flags(create_no_window)
+            .status();
     }
 
     /*

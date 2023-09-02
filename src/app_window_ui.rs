@@ -1,28 +1,27 @@
 
-//use nwg::stretch::geometry::Rect;
+use std::rc::Rc;
+use std::cell::RefCell;
+use std::ops::Deref;
+
 use nwg::stretch::geometry::Size;
-use nwg::stretch::style::Dimension;
 use nwg::stretch::style::FlexDirection;
-//use nwg::stretch::style::AlignSelf;
 
 use crate::*;
+use dialogs::DialogUi;
+use ui::PT_50;
 use app_window::AppWindow;
-
-//const FIFTY_PC: D = D::Percent(0.5);
-const PT_50: Dimension = Dimension::Points(50.0);
-//const PADDING: Rect<D> = Rect{ start: PT_10, end: PT_10, top: PT_10, bottom: PT_10 };
-//const MARGIN: Rect<D> = Rect{ start: PT_5, end: PT_5, top: PT_5, bottom: PT_5 };
+use nwg::{NwgError, Window};
 
 #[derive(Default)]
 pub struct AppWindowUi {
-    pub events: events::Events<AppWindow>,
+    events: events::Events<AppWindow>,
 
-    pub window: nwg::Window,
-    pub button1: nwg::Button,
-    pub button2: nwg::Button,
+    window: nwg::Window,
+    button1: nwg::Button,
+    button2: nwg::Button,
     pub data_view: nwg::ListView,
-    pub button5: nwg::Button,
-    pub button6: nwg::Button,
+    button5: nwg::Button,
+    button6: nwg::Button,
     pub status_bar: nwg::StatusBar,
 
     file_menu: nwg::Menu,
@@ -42,169 +41,219 @@ pub struct AppWindowUi {
     pub dialog_notice: notice::SyncNotice,
 }
 
-impl AppWindowUi {
-    pub fn build(&mut self) -> Result<(), nwg::NwgError> {
-        let data = self;
-        create_fonts(data)?;
-        create_window(data)?;
-        create_menu(data)?;
+impl DialogUi for AppWindowUi {
+    fn window(&self) -> &Window {
+        &self.window
+    }
+
+    fn build_controls(&mut self) -> Result<(), NwgError> {
+        // font
+        nwg::Font::builder()
+            .size(14)
+            //.weight(1000)
+            .build(&mut self.small_font)?;
+
+        // window
+
+        nwg::Window::builder()
+            .size((640, 480))
+            .center(true)
+            .title("WiltonDB Configuration Tool")
+            .build(&mut self.window)?;
+        events::builder()
+            .control(&self.window)
+            .event(nwg::Event::OnWindowClose)
+            .handler(AppWindow::exit)
+            .build(&mut self.events)?;
+
+        // menu
+
+        nwg::Menu::builder()
+            .parent(&self.window)
+            .text("File")
+            .build(&mut self.file_menu)?;
+        nwg::MenuItem::builder()
+            .parent(&self.file_menu)
+            .text("Connect to DB")
+            .build(&mut self.file_connect_menu_item)?;
+        nwg::MenuItem::builder()
+            .parent(&self.file_menu)
+            .text("Exit")
+            .build(&mut self.file_exit_menu_item)?;
+        events::builder()
+            .control(&self.file_exit_menu_item)
+            .event(nwg::Event::OnMenuItemSelected)
+            .handler(AppWindow::exit)
+            .build(&mut self.events)?;
+
+        nwg::Menu::builder()
+            .parent(&self.window)
+            .text("Help")
+            .build(&mut self.help_menu)?;
+        nwg::MenuItem::builder()
+            .parent(&self.help_menu)
+            .text("About")
+            .build(&mut self.help_about_menu_item)?;
+        events::builder()
+            .control(&self.help_about_menu_item)
+            .event(nwg::Event::OnMenuItemSelected)
+            .handler(AppWindow::open_about_dialog)
+            .build(&mut self.events)?;
+        nwg::MenuItem::builder()
+            .parent(&self.help_menu)
+            .text("Website")
+            .build(&mut self.help_website_menu_item)?;
+        events::builder()
+            .control(&self.help_website_menu_item)
+            .event(nwg::Event::OnMenuItemSelected)
+            .handler(AppWindow::open_website)
+            .build(&mut self.events)?;
+
+        // buttons
 
         nwg::Button::builder()
             .text("Btn 1")
-            .parent(&data.window)
+            .parent(&self.window)
             .focus(true)
-            .build(&mut data.button1)?;
+            .build(&mut self.button1)?;
 
         nwg::Button::builder()
             .text("Btn 2")
-            .parent(&data.window)
-            .build(&mut data.button2)?;
+            .parent(&self.window)
+            .build(&mut self.button2)?;
         events::builder()
-            .control(&data.button2)
+            .control(&self.button2)
             .event(nwg::Event::OnButtonClick)
             .handler(AppWindow::load_data)
-            .build(&mut data.events)?;
+            .build(&mut self.events)?;
+
+        nwg::Button::builder()
+            .text("Btn 5")
+            .parent(&self.window)
+            .build(&mut self.button5)?;
+
+        nwg::Button::builder()
+            .text("Btn 6")
+            .parent(&self.window)
+            .build(&mut self.button6)?;
+
+        // other
 
         nwg::ListView::builder()
-            .parent(&data.window)
+            .parent(&self.window)
             .item_count(10)
             .list_style(nwg::ListViewStyle::Detailed)
             .focus(true)
             .ex_flags(nwg::ListViewExFlags::GRID | nwg::ListViewExFlags::FULL_ROW_SELECT)
-            .build(&mut data.data_view)?;
-
-        nwg::Button::builder()
-            .text("Btn 5")
-            .parent(&data.window)
-            .build(&mut data.button5)?;
-
-        nwg::Button::builder()
-            .text("Btn 6")
-            .parent(&data.window)
-            .build(&mut data.button6)?;
+            .build(&mut self.data_view)?;
 
         nwg::StatusBar::builder()
-            .parent(&data.window)
+            .parent(&self.window)
             .text("Ready for tests")
-            .font(Some(&data.small_font))
-            .build(&mut data.status_bar)?;
+            .font(Some(&self.small_font))
+            .build(&mut self.status_bar)?;
 
         notice::SyncNotice::builder()
-            .parent(&data.window)
-            .build(&mut data.dialog_notice)?;
+            .parent(&self.window)
+            .build(&mut self.dialog_notice)?;
         events::builder()
-            .control(&data.dialog_notice.notice)
+            .control(&self.dialog_notice.notice)
             .event(nwg::Event::OnNotice)
             .handler(AppWindow::read_dialog_output)
-            .build(&mut data.events)?;
+            .build(&mut self.events)?;
 
-        create_layout(data)?;
+        Ok(())
+    }
+
+    fn build_layout(&mut self) -> Result<(), NwgError> {
+        nwg::FlexboxLayout::builder()
+            .parent(&self.window)
+            .flex_direction(FlexDirection::Row)
+            .child(&self.button1)
+            .child_size(Size { width: PT_50, height: PT_50 })
+            .child(&self.button2)
+            .child_size(Size { width: PT_50, height: PT_50 })
+            .child_flex_grow(1.0)
+            .build_partial(&self.row1_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&self.window)
+            .flex_direction(FlexDirection::Row)
+            .child(&self.data_view)
+            .child_flex_grow(1.0)
+            .build_partial(&self.row2_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&self.window)
+            .flex_direction(FlexDirection::Row)
+            .child(&self.button5)
+            .child_size(Size { width: PT_50, height: PT_50 })
+            .child(&self.button6)
+            .child_size(Size { width: PT_50, height: PT_50 })
+            .child_flex_grow(1.0)
+            .build_partial(&self.row3_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&self.window)
+            .flex_direction(FlexDirection::Column)
+            .child_layout(&self.row1_layout)
+            .child_layout(&self.row2_layout)
+            .child_flex_grow(1.0)
+            .child_layout(&self.row3_layout)
+            .build(&self.root_layout)?;
 
         Ok(())
     }
 }
 
-fn create_fonts(data: &mut AppWindowUi) -> Result<(), nwg::NwgError> {
-    nwg::Font::builder()
-        .size(14)
-        //.weight(1000)
-        .build(&mut data.small_font)?;
-
-    Ok(())
+pub struct AppWindowNwg {
+    inner: Rc<AppWindow>,
+    default_handler: RefCell<Option<nwg::EventHandler>>
 }
 
-fn create_window(data: &mut AppWindowUi) -> Result<(), nwg::NwgError> {
-    nwg::Window::builder()
-        .size((640, 480))
-        .center(true)
-        .title("WiltonDB Configuration Tool")
-        .build(&mut data.window)?;
-    events::builder()
-        .control(&data.window)
-        .event(nwg::Event::OnWindowClose)
-        .handler(AppWindow::exit)
-        .build(&mut data.events)?;
+impl nwg::NativeUi<AppWindowNwg> for AppWindow {
+    fn build_ui(mut data: AppWindow) -> Result<AppWindowNwg, nwg::NwgError> {
+        data.ui.build_controls()?;
+        data.ui.build_layout()?;
+        data.ui.shake_after_layout();
 
-    Ok(())
+        let wrapper = AppWindowNwg {
+            inner:  Rc::new(data),
+            default_handler: Default::default(),
+        };
+
+        let data_ref = Rc::downgrade(&wrapper.inner);
+        let handle_events = move |evt, _evt_data, handle| {
+            if let Some(evt_data) = data_ref.upgrade() {
+                for eh in evt_data.ui.events.iter() {
+                    if handle == eh.control_handle && evt == eh.event {
+                        (eh.handler)(&evt_data);
+                        break;
+                    }
+                }
+            }
+        };
+
+        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.ui.window.handle, handle_events));
+
+        return Ok(wrapper);
+    }
+
 }
 
-fn create_menu(data: &mut AppWindowUi) -> Result<(), nwg::NwgError> {
-    nwg::Menu::builder()
-        .parent(&data.window)
-        .text("File")
-        .build(&mut data.file_menu)?;
-    nwg::MenuItem::builder()
-        .parent(&data.file_menu)
-        .text("Connect to DB")
-        .build(&mut data.file_connect_menu_item)?;
-    events::builder()
-        .control(&data.file_connect_menu_item)
-        .event(nwg::Event::OnMenuItemSelected)
-        .handler(AppWindow::open_connect_dialog)
-        .build(&mut data.events)?;
-    nwg::MenuItem::builder()
-        .parent(&data.file_menu)
-        .text("Exit")
-        .build(&mut data.file_exit_menu_item)?;
-    events::builder()
-        .control(&data.file_exit_menu_item)
-        .event(nwg::Event::OnMenuItemSelected)
-        .handler(AppWindow::exit)
-        .build(&mut data.events)?;
-
-    nwg::Menu::builder()
-        .parent(&data.window)
-        .text("Help")
-        .build(&mut data.help_menu)?;
-    nwg::MenuItem::builder()
-        .parent(&data.help_menu)
-        .text("About")
-        .build(&mut data.help_about_menu_item)?;
-    nwg::MenuItem::builder()
-        .parent(&data.help_menu)
-        .text("Website")
-        .build(&mut data.help_website_menu_item)?;
-
-    Ok(())
+impl Drop for AppWindowNwg {
+    fn drop(&mut self) {
+        let handler = self.default_handler.borrow();
+        if handler.is_some() {
+            nwg::unbind_event_handler(handler.as_ref().unwrap());
+        }
+    }
 }
 
-pub fn create_layout(data: &mut AppWindowUi) -> Result<(), nwg::NwgError> {
+impl Deref for AppWindowNwg {
+    type Target = AppWindow;
 
-    nwg::FlexboxLayout::builder()
-        .parent(&data.window)
-        .flex_direction(FlexDirection::Row)
-        .child(&data.button1)
-        .child_size(Size { width: PT_50, height: PT_50 })
-        .child(&data.button2)
-        .child_size(Size { width: PT_50, height: PT_50 })
-        .child_flex_grow(1.0)
-        .build_partial(&data.row1_layout)?;
-
-    nwg::FlexboxLayout::builder()
-        .parent(&data.window)
-        .flex_direction(FlexDirection::Row)
-        .child(&data.data_view)
-        .child_flex_grow(1.0)
-        .build_partial(&data.row2_layout)?;
-
-    nwg::FlexboxLayout::builder()
-        .parent(&data.window)
-        .flex_direction(FlexDirection::Row)
-        .child(&data.button5)
-        .child_size(Size { width: PT_50, height: PT_50 })
-        .child(&data.button6)
-        .child_size(Size { width: PT_50, height: PT_50 })
-        .child_flex_grow(1.0)
-        .build_partial(&data.row3_layout)?;
-
-    nwg::FlexboxLayout::builder()
-        .parent(&data.window)
-        .flex_direction(FlexDirection::Column)
-        .child_layout(&data.row1_layout)
-        .child_layout(&data.row2_layout)
-        .child_flex_grow(1.0)
-        .child_layout(&data.row3_layout)
-        .build(&data.root_layout)?;
-
-    Ok(())
+    fn deref(&self) -> &AppWindow {
+        &self.inner
+    }
 }

@@ -1,34 +1,26 @@
 
-use std::cell::RefCell;
 use std::thread;
 use std::thread::JoinHandle;
 
 use nwg::NativeUi;
-use postgres::{Client, NoTls};
+//use postgres::{Client, NoTls};
 
 use crate::*;
+use dialogs::DialogUi;
+use dialogs::PopupDialog;
 use notice::SyncNoticeSender;
+use about_dialog_ui::AboutDialogUi;
 
 #[derive(Default)]
 pub struct AboutDialog {
     notice_sender: Option<SyncNoticeSender>,
 
-    pub response: RefCell<String>,
-
-    pub window: nwg::Window,
-    pub choice_yes: nwg::Button,
-    pub connect_button: nwg::Button,
-
-    pub events: events::Events<Self>,
+    pub ui: AboutDialogUi,
 }
 
 impl AboutDialog {
 
-    pub fn close(&self) {
-        self.notice_sender.as_ref().expect("Notice sender not initialized").send();
-        nwg::stop_thread_dispatch();
-    }
-
+    /*
     pub fn connect(&self) {
         //thread::spawn(move || {
             let mut client = Client::connect("host=127.0.0.1 user=wilton password=wilton", NoTls).expect("Connection failure");
@@ -42,6 +34,7 @@ impl AboutDialog {
             client.close().expect("Connection close error");
         //});
     }
+     */
 
     /*
     fn choose(&self, btn: &nwg::Button) {
@@ -58,8 +51,8 @@ impl AboutDialog {
 
 }
 
-impl dialogs::PopupDialog<String> for AboutDialog {
-    fn popup(notice_sender: SyncNoticeSender) -> JoinHandle<String> {
+impl PopupDialog<()> for AboutDialog {
+    fn popup(notice_sender: SyncNoticeSender) -> JoinHandle<()> {
         thread::spawn(move || {
             let data = Self {
                 notice_sender: Some(notice_sender),
@@ -71,7 +64,13 @@ impl dialogs::PopupDialog<String> for AboutDialog {
         })
     }
 
-    fn result(&self) -> String {
-        self.response.take()
+    fn result(&self) -> () {
+        ()
+    }
+
+    fn close(&self) {
+        self.notice_sender.as_ref().expect("Notice sender not initialized").send();
+        self.ui.window().set_visible(false);
+        nwg::stop_thread_dispatch();
     }
 }

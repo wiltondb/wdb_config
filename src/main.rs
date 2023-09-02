@@ -1,13 +1,10 @@
 #![windows_subsystem = "windows"]
 
 mod about_dialog;
-mod about_dialog_controls;
-mod about_dialog_layout;
-mod about_dialog_nwg;
+mod about_dialog_ui;
 
 mod app_window;
 mod app_window_ui;
-mod app_window_nwg;
 
 mod dialogs;
 mod events;
