@@ -3,12 +3,15 @@ use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::process::Stdio;
 
+use postgres::config::Config;
+
 use crate::*;
 use dialogs::DialogJoiner;
 use dialogs::DialogUi;
 use dialogs::PopupDialog;
 
 use about_dialog::AboutDialog;
+use connect_dialog::ConnectDialog;
 use app_window_ui::AppWindowUi;
 
 #[derive(Default)]
@@ -16,6 +19,7 @@ pub struct AppWindow {
     pub ui: AppWindowUi,
 
     about_dialog_joiner: DialogJoiner<()>,
+    connect_dialog_joiner: DialogJoiner<Config>,
 }
 
 impl AppWindow {
@@ -82,14 +86,27 @@ impl AppWindow {
 
     pub fn open_about_dialog(&self) {
         self.ui.window().set_enabled(false);
-        let join_handle = AboutDialog::popup(self.ui.dialog_notice.sender());
+        let join_handle = AboutDialog::popup(self.ui.about_dialog_notice.sender());
         self.about_dialog_joiner.set_join_handle(join_handle);
     }
 
-    pub fn read_dialog_output(&self) {
+    pub fn await_about_dialog(&self) {
         self.ui.window().set_enabled(true);
-        self.ui.dialog_notice.receive();
+        self.ui.about_dialog_notice.receive();
         let _ = self.about_dialog_joiner.await_result();
+        //self.ui.status_bar.set_text(0, &res);
+    }
+
+    pub fn open_connect_dialog(&self) {
+        self.ui.window().set_enabled(false);
+        let join_handle = ConnectDialog::popup(self.ui.connect_dialog_notice.sender());
+        self.connect_dialog_joiner.set_join_handle(join_handle);
+    }
+
+    pub fn await_connect_dialog(&self) {
+        self.ui.window().set_enabled(true);
+        self.ui.connect_dialog_notice.receive();
+        let _ = self.connect_dialog_joiner.await_result();
         //self.ui.status_bar.set_text(0, &res);
     }
 

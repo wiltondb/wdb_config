@@ -8,7 +8,6 @@ use nwg::stretch::style::FlexDirection;
 
 use crate::*;
 use dialogs::DialogUi;
-use ui::PT_50;
 use app_window::AppWindow;
 use nwg::{NwgError, Window};
 
@@ -38,7 +37,8 @@ pub struct AppWindowUi {
 
     small_font: nwg::Font,
 
-    pub dialog_notice: notice::SyncNotice,
+    pub about_dialog_notice: notice::SyncNotice,
+    pub connect_dialog_notice: notice::SyncNotice,
 }
 
 impl DialogUi for AppWindowUi {
@@ -76,6 +76,11 @@ impl DialogUi for AppWindowUi {
             .parent(&self.file_menu)
             .text("Connect to DB")
             .build(&mut self.file_connect_menu_item)?;
+        events::builder()
+            .control(&self.file_connect_menu_item)
+            .event(nwg::Event::OnMenuItemSelected)
+            .handler(AppWindow::open_connect_dialog)
+            .build(&mut self.events)?;
         nwg::MenuItem::builder()
             .parent(&self.file_menu)
             .text("Exit")
@@ -153,13 +158,22 @@ impl DialogUi for AppWindowUi {
             .font(Some(&self.small_font))
             .build(&mut self.status_bar)?;
 
-        notice::SyncNotice::builder()
+        notice::builder()
             .parent(&self.window)
-            .build(&mut self.dialog_notice)?;
+            .build(&mut self.about_dialog_notice)?;
         events::builder()
-            .control(&self.dialog_notice.notice)
+            .control(&self.about_dialog_notice.notice)
             .event(nwg::Event::OnNotice)
-            .handler(AppWindow::read_dialog_output)
+            .handler(AppWindow::await_about_dialog)
+            .build(&mut self.events)?;
+
+        notice::builder()
+            .parent(&self.window)
+            .build(&mut self.connect_dialog_notice)?;
+        events::builder()
+            .control(&self.connect_dialog_notice.notice)
+            .event(nwg::Event::OnNotice)
+            .handler(AppWindow::await_connect_dialog)
             .build(&mut self.events)?;
 
         Ok(())
@@ -170,9 +184,15 @@ impl DialogUi for AppWindowUi {
             .parent(&self.window)
             .flex_direction(FlexDirection::Row)
             .child(&self.button1)
-            .child_size(Size { width: PT_50, height: PT_50 })
+            .child_size(ui::size_builder()
+                .width_button_normal()
+                .height_button()
+                .build())
             .child(&self.button2)
-            .child_size(Size { width: PT_50, height: PT_50 })
+            .child_size(ui::size_builder()
+                .width_button_normal()
+                .height_button()
+                .build())
             .child_flex_grow(1.0)
             .build_partial(&self.row1_layout)?;
 
@@ -187,9 +207,15 @@ impl DialogUi for AppWindowUi {
             .parent(&self.window)
             .flex_direction(FlexDirection::Row)
             .child(&self.button5)
-            .child_size(Size { width: PT_50, height: PT_50 })
+            .child_size(ui::size_builder()
+                .width_button_normal()
+                .height_button()
+                .build())
             .child(&self.button6)
-            .child_size(Size { width: PT_50, height: PT_50 })
+            .child_size(ui::size_builder()
+                .width_button_normal()
+                .height_button()
+                .build())
             .child_flex_grow(1.0)
             .build_partial(&self.row3_layout)?;
 

@@ -1,4 +1,3 @@
-
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::Deref;
@@ -9,23 +8,23 @@ use nwg::stretch::style::FlexDirection;
 use crate::*;
 use dialogs::DialogUi;
 use dialogs::PopupDialog;
-use about_dialog::AboutDialog;
+use connect_dialog::ConnectDialog;
 use nwg::Window;
 
 #[derive(Default)]
-pub struct AboutDialogUi {
-    events: events::Events<AboutDialog>,
-
+pub struct ConnectDialogUi {
+    events: events::Events<ConnectDialog>,
     font_normal: nwg::Font,
 
     window: nwg::Window,
-    label: nwg::Label,
-    close_button: nwg::Button,
+    test_button: nwg::Button,
 
     root_layout: nwg::FlexboxLayout,
+
+    pub check_dialog_notice: notice::SyncNotice,
 }
 
-impl DialogUi for AboutDialogUi {
+impl DialogUi for ConnectDialogUi {
     fn window(&self) -> &Window {
         &self.window
     }
@@ -38,33 +37,34 @@ impl DialogUi for AboutDialogUi {
             .build(&mut self.font_normal)?;
 
         nwg::Window::builder()
-            .size((320, 200))
+            .size((480, 320))
             .center(true)
-            .title("About")
+            .title("Connect")
             .build(&mut self.window)?;
         events::builder()
             .control(&self.window)
             .event(nwg::Event::OnWindowClose)
-            .handler(AboutDialog::close)
+            .handler(ConnectDialog::close)
             .build(&mut self.events)?;
 
-        nwg::Label::builder()
-            .text("Very long label label label label label label label label \r\n will eventually go here")
-            .h_align(nwg::HTextAlign::Center)
-            .v_align(nwg::VTextAlign::Top)
-            .font(Some(&self.font_normal))
-            .parent(&self.window)
-            .build(&mut self.label)?;
-
         nwg::Button::builder()
-            .text("Close")
+            .text("Test")
             .font(Some(&self.font_normal))
             .parent(&self.window)
-            .build(&mut self.close_button)?;
+            .build(&mut self.test_button)?;
         events::builder()
-            .control(&self.close_button)
+            .control(&self.test_button)
             .event(nwg::Event::OnButtonClick)
-            .handler(AboutDialog::close)
+            .handler(ConnectDialog::open_check_dialog)
+            .build(&mut self.events)?;
+
+        notice::builder()
+            .parent(&self.window)
+            .build(&mut self.check_dialog_notice)?;
+        events::builder()
+            .control(&self.check_dialog_notice.notice)
+            .event(nwg::Event::OnNotice)
+            .handler(ConnectDialog::await_check_dialog)
             .build(&mut self.events)?;
 
         Ok(())
@@ -75,17 +75,10 @@ impl DialogUi for AboutDialogUi {
             .parent(&self.window)
             .flex_direction(FlexDirection::Column)
 
-            .child(&self.label)
+            .child(&self.test_button)
             .child_size(ui::size_builder()
-                .width_auto()
-                .height_points(50)
-                .build())
-            .child_flex_grow(1.0)
-
-            .child(&self.close_button)
-            .child_size(ui::size_builder()
-                .width_button_normal()
                 .height_button()
+                .width_button_normal()
                 .build())
             .child_align_self(AlignSelf::FlexEnd)
 
@@ -93,21 +86,21 @@ impl DialogUi for AboutDialogUi {
 
         Ok(())
     }
-    
+
 }
 
-pub struct AboutDialogNwg {
-    inner: Rc<AboutDialog>,
+pub struct ConnectDialogNwg {
+    inner: Rc<ConnectDialog>,
     default_handler: RefCell<Option<nwg::EventHandler>>
 }
 
-impl nwg::NativeUi<AboutDialogNwg> for AboutDialog {
-    fn build_ui(mut data: AboutDialog) -> Result<AboutDialogNwg, nwg::NwgError> {
+impl nwg::NativeUi<ConnectDialogNwg> for ConnectDialog {
+    fn build_ui(mut data: ConnectDialog) -> Result<ConnectDialogNwg, nwg::NwgError> {
         data.ui.build_controls()?;
         data.ui.build_layout()?;
         data.ui.shake_after_layout();
 
-        let wrapper = AboutDialogNwg {
+        let wrapper = ConnectDialogNwg {
             inner:  Rc::new(data),
             default_handler: Default::default(),
         };
@@ -130,7 +123,7 @@ impl nwg::NativeUi<AboutDialogNwg> for AboutDialog {
     }
 }
 
-impl Drop for AboutDialogNwg {
+impl Drop for ConnectDialogNwg {
     fn drop(&mut self) {
         let handler = self.default_handler.borrow();
         if handler.is_some() {
@@ -139,10 +132,10 @@ impl Drop for AboutDialogNwg {
     }
 }
 
-impl Deref for AboutDialogNwg {
-    type Target = AboutDialog;
+impl Deref for ConnectDialogNwg {
+    type Target = ConnectDialog;
 
-    fn deref(&self) -> &AboutDialog {
+    fn deref(&self) -> &ConnectDialog {
         &self.inner
     }
 }

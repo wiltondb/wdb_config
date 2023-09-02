@@ -5,10 +5,12 @@ use std::thread::JoinHandle;
 use crate::*;
 use notice::SyncNoticeSender;
 
-pub trait PopupDialog<T: Send+Sync> {
+pub trait PopupDialog<T: Default + Send + Sync> {
     fn popup(notice_sender: SyncNoticeSender) -> JoinHandle<T>;
 
-    fn result(&self) -> T;
+    fn result(&self) -> T {
+        Default::default()
+    }
 
     fn close(&self);
 }

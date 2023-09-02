@@ -14,40 +14,11 @@ use about_dialog_ui::AboutDialogUi;
 #[derive(Default)]
 pub struct AboutDialog {
     notice_sender: Option<SyncNoticeSender>,
-
     pub ui: AboutDialogUi,
 }
 
 impl AboutDialog {
 
-    /*
-    pub fn connect(&self) {
-        //thread::spawn(move || {
-            let mut client = Client::connect("host=127.0.0.1 user=wilton password=wilton", NoTls).expect("Connection failure");
-
-            for row in client.query("show listen_addresses", &[]).expect("Query failure") {
-                let val: String = row.get("listen_addresses");
-                let mut data = self.response.borrow_mut();
-                *data = val;
-            }
-
-            client.close().expect("Connection close error");
-        //});
-    }
-     */
-
-    /*
-    fn choose(&self, btn: &nwg::Button) {
-        let mut data = self.response.borrow_mut();
-        if btn == &self.choice_no {
-            *data = Some("No!".to_string());
-        } else if btn == &self.choice_yes {
-            *data = Some("Yes!".to_string());
-        }
-
-        self.window.close();
-    }
-     */
 
 }
 
@@ -62,10 +33,6 @@ impl PopupDialog<()> for AboutDialog {
             nwg::dispatch_thread_events();
             dialog.result()
         })
-    }
-
-    fn result(&self) -> () {
-        ()
     }
 
     fn close(&self) {
