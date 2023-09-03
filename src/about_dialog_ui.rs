@@ -78,7 +78,7 @@ impl DialogUi for AboutDialogUi {
             .child(&self.label)
             .child_size(ui::size_builder()
                 .width_auto()
-                .height_points(50)
+                .height_pt(50)
                 .build())
             .child_flex_grow(1.0)
 

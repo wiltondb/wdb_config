@@ -3,7 +3,6 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::Deref;
 
-use nwg::stretch::geometry::Size;
 use nwg::stretch::style::FlexDirection;
 
 use crate::*;

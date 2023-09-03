@@ -19,8 +19,10 @@ pub struct ConnectCheckDialogUi {
     window: nwg::Window,
     pub progress_bar: nwg::ProgressBar,
     pub label: nwg::Label,
+    close_button: nwg::Button,
 
     root_layout: nwg::FlexboxLayout,
+    label_layout: nwg::FlexboxLayout,
     pub check_notice: notice::SyncNoticeValue<bool>,
 }
 
@@ -37,7 +39,7 @@ impl DialogUi for ConnectCheckDialogUi {
             .build(&mut self.font_normal)?;
 
         nwg::Window::builder()
-            .size((320, 200))
+            .size((320, 140))
             .center(true)
             .title("Check")
             .build(&mut self.window)?;
@@ -50,16 +52,30 @@ impl DialogUi for ConnectCheckDialogUi {
         nwg::ProgressBar::builder()
             .flags(nwg::ProgressBarFlags::VISIBLE | nwg::ProgressBarFlags::MARQUEE)
             .marquee(true)
+            .marquee_update(30)
             .range(0..1)
             .parent(&self.window)
             .build(&mut self.progress_bar)?;
 
         nwg::Label::builder()
             .text("Checking ...")
+            .h_align(nwg::HTextAlign::Center)
+            .v_align(nwg::VTextAlign::Top)
             .font(Some(&self.font_normal))
+            //.background_color(Some([42 as u8, 42 as u8, 42 as u8]))
             .parent(&self.window)
             .build(&mut self.label)?;
 
+        nwg::Button::builder()
+            .text("Close")
+            .font(Some(&self.font_normal))
+            .parent(&self.window)
+            .build(&mut self.close_button)?;
+        events::builder()
+            .control(&self.close_button)
+            .event(nwg::Event::OnButtonClick)
+            .handler(ConnectCheckDialog::close)
+            .build(&mut self.events)?;
 
         notice::builder()
             .parent(&self.window)
@@ -74,23 +90,42 @@ impl DialogUi for ConnectCheckDialogUi {
     }
 
     fn build_layout(&mut self) -> Result<(), nwg::NwgError> {
+
+        nwg::FlexboxLayout::builder()
+            .parent(&self.window)
+            .flex_direction(FlexDirection::Row)
+            .child(&self.label)
+            .child_size(ui::size_builder()
+                .height_pt(30)
+                .width_auto()
+                .build())
+            .child_align_self(AlignSelf::Stretch)
+            .child_margin(ui::margin_builder()
+                .top_pt(10)
+                .build())
+            .child_flex_grow(1.0)
+            .build_partial(&mut self.label_layout)?;
+
         nwg::FlexboxLayout::builder()
             .parent(&self.window)
             .flex_direction(FlexDirection::Column)
 
             .child(&self.progress_bar)
             .child_size(ui::size_builder()
-                .height_points(50)
+                .height_pt(30)
                 .width_auto()
                 .build())
             .child_align_self(AlignSelf::Stretch)
 
-            .child(&self.label)
+            .child_layout(&self.label_layout)
+            .child_flex_grow(1.0)
+
+            .child(&self.close_button)
             .child_size(ui::size_builder()
-                .height_points(50)
-                .width_auto()
+                .width_button_normal()
+                .height_button()
                 .build())
-            .child_align_self(AlignSelf::Stretch)
+            .child_align_self(AlignSelf::FlexEnd)
 
             .build(&mut self.root_layout)?;
 
