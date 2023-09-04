@@ -39,6 +39,16 @@ impl SizeBuilder {
         self
     }
 
+    pub fn width_button_wide(mut self) -> Self {
+        self.width = Dimension::Points(100 as f32);
+        self
+    }
+
+    pub fn width_button_xwide(mut self) -> Self {
+        self.width = Dimension::Points(130 as f32);
+        self
+    }
+
     pub fn width_auto(mut self) -> Self {
         self.width = Dimension::Auto;
         self

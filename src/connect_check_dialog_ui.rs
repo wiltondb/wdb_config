@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use std::ops::Deref;
 
 use nwg::stretch::style::AlignSelf;
+use nwg::stretch::style::JustifyContent;
 use nwg::stretch::style::FlexDirection;
 
 use crate::*;
@@ -19,11 +20,32 @@ pub struct ConnectCheckDialogUi {
     window: nwg::Window,
     pub progress_bar: nwg::ProgressBar,
     pub label: nwg::Label,
+    details_box: nwg::TextBox,
+    copy_clipboard_button: nwg::Button,
     close_button: nwg::Button,
 
     root_layout: nwg::FlexboxLayout,
-    label_layout: nwg::FlexboxLayout,
-    pub check_notice: notice::SyncNoticeValue<bool>,
+    buttons_layout: nwg::FlexboxLayout,
+
+    check_notice: notice::SyncNoticeValue<String>,
+}
+
+impl ConnectCheckDialogUi {
+    pub fn check_notice(&self) -> &notice::SyncNoticeValue<String> {
+       &self.check_notice
+    }
+
+    pub fn set_label_text(&self, text: &str) {
+        self.label.set_text(text);
+    }
+
+    pub fn details_text(&self) -> String {
+        self.details_box.text()
+    }
+
+    pub fn set_details_text(&self, text: &str) {
+        self.details_box.set_text(text)
+    }
 }
 
 impl DialogUi for ConnectCheckDialogUi {
@@ -39,7 +61,7 @@ impl DialogUi for ConnectCheckDialogUi {
             .build(&mut self.font_normal)?;
 
         nwg::Window::builder()
-            .size((320, 140))
+            .size((320, 200))
             .center(true)
             .title("Check")
             .build(&mut self.window)?;
@@ -59,12 +81,30 @@ impl DialogUi for ConnectCheckDialogUi {
 
         nwg::Label::builder()
             .text("Checking ...")
-            .h_align(nwg::HTextAlign::Center)
-            .v_align(nwg::VTextAlign::Top)
+            .flags(nwg::LabelFlags::VISIBLE | nwg::LabelFlags::ELIPSIS)
             .font(Some(&self.font_normal))
+            .v_align(nwg::VTextAlign::Top)
             //.background_color(Some([42 as u8, 42 as u8, 42 as u8]))
             .parent(&self.window)
             .build(&mut self.label)?;
+
+        nwg::TextBox::builder()
+            .text("Details pending ...")
+            .font(Some(&self.font_normal))
+            .readonly(true)
+            .parent(&self.window)
+            .build(&mut self.details_box)?;
+
+        nwg::Button::builder()
+            .text("Copy to clipboard")
+            .font(Some(&self.font_normal))
+            .parent(&self.window)
+            .build(&mut self.copy_clipboard_button)?;
+        events::builder()
+            .control(&self.copy_clipboard_button)
+            .event(nwg::Event::OnButtonClick)
+            .handler(ConnectCheckDialog::copy_to_clipboard)
+            .build(&mut self.events)?;
 
         nwg::Button::builder()
             .text("Close")
@@ -94,17 +134,25 @@ impl DialogUi for ConnectCheckDialogUi {
         nwg::FlexboxLayout::builder()
             .parent(&self.window)
             .flex_direction(FlexDirection::Row)
-            .child(&self.label)
+            .justify_content(JustifyContent::FlexEnd)
+            .auto_spacing(None)
+
+            .child(&self.copy_clipboard_button)
             .child_size(ui::size_builder()
-                .height_pt(30)
-                .width_auto()
+                .width_button_xwide()
+                .height_button()
                 .build())
-            .child_align_self(AlignSelf::Stretch)
+
+            .child(&self.close_button)
+            .child_size(ui::size_builder()
+                .width_button_normal()
+                .height_button()
+                .build())
             .child_margin(ui::margin_builder()
-                .top_pt(10)
+                .start_pt(5)
                 .build())
-            .child_flex_grow(1.0)
-            .build_partial(&mut self.label_layout)?;
+
+            .build_partial(&self.buttons_layout)?;
 
         nwg::FlexboxLayout::builder()
             .parent(&self.window)
@@ -117,15 +165,23 @@ impl DialogUi for ConnectCheckDialogUi {
                 .build())
             .child_align_self(AlignSelf::Stretch)
 
-            .child_layout(&self.label_layout)
+            .child(&self.label)
+            .child_size(ui::size_builder()
+                .height_pt(10)
+                .width_auto()
+                .build())
+            .child_align_self(AlignSelf::Stretch)
+
+            .child(&self.details_box)
+            .child_size(ui::size_builder()
+                .height_auto()
+                .width_auto()
+                .build())
+            .child_align_self(AlignSelf::Stretch)
             .child_flex_grow(1.0)
 
-            .child(&self.close_button)
-            .child_size(ui::size_builder()
-                .width_button_normal()
-                .height_button()
-                .build())
-            .child_align_self(AlignSelf::FlexEnd)
+            .child_layout(&self.buttons_layout)
+            .child_align_self(AlignSelf::Stretch)
 
             .build(&mut self.root_layout)?;
 
