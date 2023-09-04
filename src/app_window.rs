@@ -11,7 +11,9 @@ use dialogs::DialogUi;
 use dialogs::PopupDialog;
 
 use about_dialog::AboutDialog;
+use about_dialog::AboutDialogArgs;
 use connect_dialog::ConnectDialog;
+use connect_dialog::ConnectDialogArgs;
 use app_window_ui::AppWindowUi;
 
 #[derive(Default)]
@@ -86,7 +88,8 @@ impl AppWindow {
 
     pub fn open_about_dialog(&self) {
         self.ui.window().set_enabled(false);
-        let join_handle = AboutDialog::popup(self.ui.about_dialog_notice.sender());
+        let args = AboutDialogArgs::new(&self.ui.about_dialog_notice);
+        let join_handle = AboutDialog::popup(args);
         self.about_dialog_joiner.set_join_handle(join_handle);
     }
 
@@ -99,7 +102,8 @@ impl AppWindow {
 
     pub fn open_connect_dialog(&self) {
         self.ui.window().set_enabled(false);
-        let join_handle = ConnectDialog::popup(self.ui.connect_dialog_notice.sender());
+        let args = ConnectDialogArgs::new(&self.ui.connect_dialog_notice, Default::default());
+        let join_handle = ConnectDialog::popup(args);
         self.connect_dialog_joiner.set_join_handle(join_handle);
     }
 

@@ -21,7 +21,13 @@ pub struct ConnectDialogUi {
 
     root_layout: nwg::FlexboxLayout,
 
-    pub check_dialog_notice: notice::SyncNotice,
+    check_dialog_notice: notice::SyncNotice,
+}
+
+impl ConnectDialogUi {
+    pub fn check_dialog_notice(&self) -> &notice::SyncNotice {
+        &self.check_dialog_notice
+    }
 }
 
 impl DialogUi for ConnectDialogUi {
@@ -96,9 +102,7 @@ pub struct ConnectDialogNwg {
 
 impl nwg::NativeUi<ConnectDialogNwg> for ConnectDialog {
     fn build_ui(mut data: ConnectDialog) -> Result<ConnectDialogNwg, nwg::NwgError> {
-        data.ui.build_controls()?;
-        data.ui.build_layout()?;
-        data.ui.shake_after_layout();
+        data.build_popup_ui()?;
 
         let wrapper = ConnectDialogNwg {
             inner:  Rc::new(data),
@@ -108,7 +112,7 @@ impl nwg::NativeUi<ConnectDialogNwg> for ConnectDialog {
         let data_ref = Rc::downgrade(&wrapper.inner);
         let handle_events = move |evt, _evt_data, handle| {
             if let Some(evt_data) = data_ref.upgrade() {
-                for eh in evt_data.ui.events.iter() {
+                for eh in evt_data.ui().events.iter() {
                     if handle == eh.control_handle && evt == eh.event {
                         (eh.handler)(&evt_data);
                         break;
@@ -117,7 +121,7 @@ impl nwg::NativeUi<ConnectDialogNwg> for ConnectDialog {
             }
         };
 
-        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.ui.window.handle, handle_events));
+        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.ui().window.handle, handle_events));
 
         return Ok(wrapper);
     }

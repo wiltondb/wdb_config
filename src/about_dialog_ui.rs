@@ -103,9 +103,7 @@ pub struct AboutDialogNwg {
 
 impl nwg::NativeUi<AboutDialogNwg> for AboutDialog {
     fn build_ui(mut data: AboutDialog) -> Result<AboutDialogNwg, nwg::NwgError> {
-        data.ui.build_controls()?;
-        data.ui.build_layout()?;
-        data.ui.shake_after_layout();
+        data.build_popup_ui()?;
 
         let wrapper = AboutDialogNwg {
             inner:  Rc::new(data),
@@ -115,7 +113,7 @@ impl nwg::NativeUi<AboutDialogNwg> for AboutDialog {
         let data_ref = Rc::downgrade(&wrapper.inner);
         let handle_events = move |evt, _evt_data, handle| {
             if let Some(evt_data) = data_ref.upgrade() {
-                for eh in evt_data.ui.events.iter() {
+                for eh in evt_data.ui().events.iter() {
                     if handle == eh.control_handle && evt == eh.event {
                         (eh.handler)(&evt_data);
                         break;
@@ -124,7 +122,7 @@ impl nwg::NativeUi<AboutDialogNwg> for AboutDialog {
             }
         };
 
-        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.ui.window.handle, handle_events));
+        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.ui().window.handle, handle_events));
 
         return Ok(wrapper);
     }

@@ -9,45 +9,38 @@ use std::sync::mpsc::SyncSender;
 // must enable the main window before destroying the dialog box. Otherwise, another window
 // will receive the keyboard focus and be activated.
 
-pub type SyncNotice = SyncNoticeValue<()>;
-pub type SyncNoticeSender = SyncNoticeValueSender<()>;
-
-pub struct SyncNoticeValueSender<T: Sync + Send + Default> {
-    sender: nwg::NoticeSender,
-    tx: SyncSender<T>,
+#[derive(Default)]
+pub struct SyncNoticeSender {
+    sender: Option<nwg::NoticeSender>,
+    tx: Option<SyncSender<()>>,
 }
 
-impl<T: Sync + Send + Default> SyncNoticeValueSender<T> {
+impl SyncNoticeSender {
     pub fn send(&self) {
-        self.sender.notice();
-        self.tx.send(Default::default()).expect("Notice send failure");
-    }
-
-    pub fn send_result(&self, t: T) {
-        self.sender.notice();
-        self.tx.send(t).expect("Notice send failure");
+        self.sender.as_ref().expect("Sender not initialized").notice();
+        self.tx.as_ref().expect("Sender not initialized").send(()).expect("Notice send failure");
     }
 }
 
 #[derive(Default)]
-pub struct SyncNoticeValue<T: Sync + Send + Default> {
+pub struct SyncNotice {
     pub notice: nwg::Notice,
-    tx: Option<SyncSender<T>>,
-    rx: Option<Receiver<T>>,
+    tx: Option<SyncSender<()>>,
+    rx: Option<Receiver<()>>,
 }
 
-impl<T: Sync + Send + Default> SyncNoticeValue<T> {
+impl SyncNotice {
 
-    pub fn sender(&self) -> SyncNoticeValueSender<T> {
-        SyncNoticeValueSender {
-            sender: self.notice.sender(),
-            tx: self.tx.as_ref().expect("Notice not initialized").clone(),
+    pub fn sender(&self) -> SyncNoticeSender {
+        SyncNoticeSender {
+            sender: Some(self.notice.sender()),
+            tx: Some(self.tx.as_ref().expect("Notice not initialized").clone())
         }
     }
 
-    pub fn receive(&self) -> T {
+    pub fn receive(&self) {
         self.rx.as_ref().expect("Notice not initalized")
-            .recv().expect("Notice receive failure")
+            .recv().expect("Notice receive failure");
     }
 }
 
@@ -67,7 +60,7 @@ impl SyncNoticeBuilder {
         self
     }
 
-    pub fn build<T: Sync + Send + Default>(self, out: &mut SyncNoticeValue<T>) -> Result<(), nwg::NwgError> {
+    pub fn build(self, out: &mut SyncNotice) -> Result<(), nwg::NwgError> {
         let parent = match self.parent {
             Some(p) => Ok(p),
             None => Err(nwg::NwgError::no_parent("Notice"))
@@ -77,7 +70,7 @@ impl SyncNoticeBuilder {
             .parent(&parent)
             .build(&mut out.notice)?;
 
-        let (tx, rx) = sync_channel::<T>(0);
+        let (tx, rx) = sync_channel::<()>(0);
         out.tx = Some(tx);
         out.rx = Some(rx);
 

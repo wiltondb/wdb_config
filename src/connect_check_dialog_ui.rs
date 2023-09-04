@@ -18,8 +18,8 @@ pub struct ConnectCheckDialogUi {
     font_normal: nwg::Font,
 
     window: nwg::Window,
-    pub progress_bar: nwg::ProgressBar,
-    pub label: nwg::Label,
+    progress_bar: nwg::ProgressBar,
+    label: nwg::Label,
     details_box: nwg::TextBox,
     copy_clipboard_button: nwg::Button,
     close_button: nwg::Button,
@@ -27,11 +27,11 @@ pub struct ConnectCheckDialogUi {
     root_layout: nwg::FlexboxLayout,
     buttons_layout: nwg::FlexboxLayout,
 
-    check_notice: notice::SyncNoticeValue<String>,
+    check_notice: notice::SyncNotice,
 }
 
 impl ConnectCheckDialogUi {
-    pub fn check_notice(&self) -> &notice::SyncNoticeValue<String> {
+    pub fn check_notice(&self) -> &notice::SyncNotice {
        &self.check_notice
     }
 
@@ -45,6 +45,15 @@ impl ConnectCheckDialogUi {
 
     pub fn set_details_text(&self, text: &str) {
         self.details_box.set_text(text)
+    }
+
+    pub fn stop_progress_bar(&self, success: bool) {
+        self.progress_bar.set_marquee(false, 0);
+        self.progress_bar.remove_flags(nwg::ProgressBarFlags::MARQUEE);
+        self.progress_bar.set_pos(1);
+        if !success {
+            self.progress_bar.set_state(nwg::ProgressBarState::Error)
+        }
     }
 }
 
@@ -196,9 +205,7 @@ pub struct ConnectCheckDialogNwg {
 
 impl nwg::NativeUi<ConnectCheckDialogNwg> for ConnectCheckDialog {
     fn build_ui(mut data: ConnectCheckDialog) -> Result<ConnectCheckDialogNwg, nwg::NwgError> {
-        data.ui.build_controls()?;
-        data.ui.build_layout()?;
-        data.ui.shake_after_layout();
+        data.build_popup_ui()?;
 
         let wrapper = ConnectCheckDialogNwg {
             inner:  Rc::new(data),
@@ -208,7 +215,7 @@ impl nwg::NativeUi<ConnectCheckDialogNwg> for ConnectCheckDialog {
         let data_ref = Rc::downgrade(&wrapper.inner);
         let handle_events = move |evt, _evt_data, handle| {
             if let Some(evt_data) = data_ref.upgrade() {
-                for eh in evt_data.ui.events.iter() {
+                for eh in evt_data.ui().events.iter() {
                     if handle == eh.control_handle && evt == eh.event {
                         (eh.handler)(&evt_data);
                         break;
@@ -217,7 +224,7 @@ impl nwg::NativeUi<ConnectCheckDialogNwg> for ConnectCheckDialog {
             }
         };
 
-        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.ui.window.handle, handle_events));
+        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.ui().window.handle, handle_events));
 
         return Ok(wrapper);
     }

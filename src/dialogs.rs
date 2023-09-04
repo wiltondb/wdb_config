@@ -2,17 +2,29 @@
 use std::cell::RefCell;
 use std::thread::JoinHandle;
 
-use crate::*;
-use notice::SyncNoticeSender;
+pub trait PopupDialogArgs {
+    fn notify_parent(&self);
+}
 
-pub trait PopupDialog<T: Default + Send + Sync> {
-    fn popup(notice_sender: SyncNoticeSender) -> JoinHandle<T>;
+pub trait PopupDialog<U: DialogUi, A: PopupDialogArgs, R: Default + Send + Sync> {
+    fn popup(params: A) -> JoinHandle<R>;
 
-    fn result(&self) -> T {
+    fn close(&self);
+
+    fn ui(&self) -> &U;
+
+    fn ui_mut(&mut self) -> &mut U;
+
+    fn result(&self) -> R {
         Default::default()
     }
 
-    fn close(&self);
+    fn build_popup_ui(&mut self) -> Result<(), nwg::NwgError> {
+        self.ui_mut().build_controls()?;
+        self.ui_mut().build_layout()?;
+        self.ui_mut().shake_after_layout();
+        Ok(())
+    }
 }
 
 pub trait DialogUi {
@@ -27,6 +39,10 @@ pub trait DialogUi {
         let (wx, wy) = self.window().size();
         self.window().set_size(wx + 1, wy + 1);
         self.window().set_size(wx, wy);
+    }
+
+    fn hide_window(&self) {
+        self.window().set_visible(false);
     }
 }
 
