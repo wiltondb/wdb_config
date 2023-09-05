@@ -48,6 +48,20 @@ impl SizeBuilder {
         self.width = Dimension::Points(130 as f32);
         self
     }
+     pub fn width_input_default(mut self) -> Self {
+         self.width = Dimension::Points(100 as f32);
+         self
+     }
+
+    pub fn width_label_normal(mut self) -> Self {
+        self.width = Dimension::Points(100 as f32);
+        self
+    }
+
+    pub fn width_number_input_normal(mut self) -> Self {
+        self.width = Dimension::Points(80 as f32);
+        self
+    }
 
     pub fn width_auto(mut self) -> Self {
         self.width = Dimension::Auto;
@@ -71,6 +85,11 @@ impl SizeBuilder {
 
     pub fn height_button(mut self) -> Self {
         self.height = Dimension::Points(25 as f32);
+        self
+    }
+
+    pub fn height_input_form_row(mut self) -> Self {
+        self.height = Dimension::Points(20 as f32);
         self
     }
 

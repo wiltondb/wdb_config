@@ -49,7 +49,9 @@ pub struct ConnectDialog {
 impl ConnectDialog {
     pub fn open_check_dialog(&self) {
         self.ui.window().set_enabled(false);
-        let args = ConnectCheckDialogArgs::new(&self.ui.check_dialog_notice(), Default::default());
+        let notice = self.ui.check_dialog_notice();
+        let config = self.ui.get_input_postgres_config();
+        let args = ConnectCheckDialogArgs::new(notice, config);
         let join_handle = ConnectCheckDialog::popup(args);
         self.check_dialog_joiner.set_join_handle(join_handle);
     }
@@ -58,7 +60,11 @@ impl ConnectDialog {
         self.ui.window().set_enabled(true);
         self.ui.check_dialog_notice().receive();
         let _ = self.check_dialog_joiner.await_result();
-        //self.ui.status_bar.set_text(0, &res);
+        dialogs::shake_window(self.ui.window());
+    }
+
+    pub fn on_port_input_changed(&self) {
+        self.ui.correct_port_value()
     }
 }
 

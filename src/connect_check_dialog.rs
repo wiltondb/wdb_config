@@ -160,7 +160,7 @@ impl ConnectCheckResult {
 }
 
 fn check_postgres_conn(config: &Config) -> Result<String, postgres::Error> {
-    let mut client = Client::connect("host=127.0.0.1 user=wilton password=wilton connect_timeout=100", NoTls)?;
+    let mut client = config.connect(NoTls)?;
     let vec = client.query("select version()", &[])?;
     let row = &vec[0];
     let res: String = row.get("version");

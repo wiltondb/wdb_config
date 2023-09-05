@@ -22,7 +22,7 @@ pub trait PopupDialog<U: DialogUi, A: PopupDialogArgs, R: Default + Send + Sync>
     fn build_popup_ui(&mut self) -> Result<(), nwg::NwgError> {
         self.ui_mut().build_controls()?;
         self.ui_mut().build_layout()?;
-        self.ui_mut().shake_after_layout();
+        shake_window(self.ui().window());
         Ok(())
     }
 }
@@ -33,13 +33,6 @@ pub trait DialogUi {
     fn build_controls(&mut self) -> Result<(), nwg::NwgError>;
 
     fn build_layout(&mut self) -> Result<(), nwg::NwgError>;
-
-    fn shake_after_layout(&self) {
-        // workaround for garbled text
-        let (wx, wy) = self.window().size();
-        self.window().set_size(wx + 1, wy + 1);
-        self.window().set_size(wx, wy);
-    }
 
     fn hide_window(&self) {
         self.window().set_visible(false);
@@ -64,7 +57,12 @@ impl<T: Send+Sync> DialogJoiner<T> {
     }
 }
 
-
+pub fn shake_window(window: &nwg::Window) {
+    // workaround for garbled text
+    let (wx, wy) = window.size();
+    window.set_size(wx + 1, wy + 1);
+    window.set_size(wx, wy);
+}
 
 
 /*

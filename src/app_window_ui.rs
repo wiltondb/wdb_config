@@ -15,7 +15,7 @@ pub struct AppWindowUi {
     events: events::Events<AppWindow>,
 
     window: nwg::Window,
-    button1: nwg::Button,
+    input1: nwg::TextInput,
     button2: nwg::Button,
     pub data_view: nwg::ListView,
     button5: nwg::Button,
@@ -48,7 +48,7 @@ impl DialogUi for AppWindowUi {
     fn build_controls(&mut self) -> Result<(), NwgError> {
         // font
         nwg::Font::builder()
-            .size(14)
+            .size(10)
             //.weight(1000)
             .build(&mut self.small_font)?;
 
@@ -115,11 +115,11 @@ impl DialogUi for AppWindowUi {
 
         // buttons
 
-        nwg::Button::builder()
+        nwg::TextInput::builder()
             .text("Btn 1")
+            .font(Some(&self.small_font))
             .parent(&self.window)
-            .focus(true)
-            .build(&mut self.button1)?;
+            .build(&mut self.input1)?;
 
         nwg::Button::builder()
             .text("Btn 2")
@@ -182,7 +182,7 @@ impl DialogUi for AppWindowUi {
         nwg::FlexboxLayout::builder()
             .parent(&self.window)
             .flex_direction(FlexDirection::Row)
-            .child(&self.button1)
+            .child(&self.input1)
             .child_size(ui::size_builder()
                 .width_button_normal()
                 .height_button()
@@ -240,7 +240,7 @@ impl nwg::NativeUi<AppWindowNwg> for AppWindow {
     fn build_ui(mut data: AppWindow) -> Result<AppWindowNwg, nwg::NwgError> {
         data.ui.build_controls()?;
         data.ui.build_layout()?;
-        data.ui.shake_after_layout();
+        dialogs::shake_window(data.ui.window());
 
         let wrapper = AppWindowNwg {
             inner:  Rc::new(data),
