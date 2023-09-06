@@ -63,6 +63,11 @@ impl SizeBuilder {
         self
     }
 
+    pub fn width_checkbox_normal(mut self) -> Self {
+        self.width = Dimension::Points(30 as f32);
+        self
+    }
+
     pub fn width_auto(mut self) -> Self {
         self.width = Dimension::Auto;
         self
@@ -141,6 +146,11 @@ pub struct MarginBuilder {
 impl MarginBuilder {
     pub fn start_pt(mut self, start: u32) -> Self {
         self.start = start;
+        self
+    }
+
+    pub fn start_no_label_normal(mut self) -> Self {
+        self.start = 105;
         self
     }
 

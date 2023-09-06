@@ -4,7 +4,6 @@ use std::thread;
 use std::thread::JoinHandle;
 
 use nwg::NativeUi;
-use postgres::config::Config;
 
 use crate::*;
 use dialogs::DialogJoiner;
@@ -18,14 +17,24 @@ use connect_check_dialog::ConnectCheckDialogArgs;
 use connect_check_dialog::ConnectCheckDialogResult;
 use connect_dialog_ui::ConnectDialogUi;
 
+#[derive(Default, Debug, Clone)]
+pub struct ConnectConfig {
+    pub hostname: String,
+    pub port: u16,
+    pub username: String,
+    pub password: String,
+    pub enable_tls: bool,
+    pub accept_invalid_tls: bool,
+}
+
 #[derive(Default)]
 pub struct ConnectDialogArgs {
     notice_sender: RefCell<SyncNoticeSender>,
-    config: Config,
+    config: ConnectConfig,
 }
 
 impl ConnectDialogArgs {
-    pub fn new(notice: &SyncNotice, config: Config) -> Self {
+    pub fn new(notice: &SyncNotice, config: ConnectConfig) -> Self {
         Self {
             notice_sender: RefCell::new(notice.sender()),
             config,
@@ -50,7 +59,7 @@ impl ConnectDialog {
     pub fn open_check_dialog(&self) {
         self.ui.window().set_enabled(false);
         let notice = self.ui.check_dialog_notice();
-        let config = self.ui.get_input_postgres_config();
+        let config = self.ui.config_from_input();
         let args = ConnectCheckDialogArgs::new(notice, config);
         let join_handle = ConnectCheckDialog::popup(args);
         self.check_dialog_joiner.set_join_handle(join_handle);
@@ -64,12 +73,16 @@ impl ConnectDialog {
     }
 
     pub fn on_port_input_changed(&self) {
-        self.ui.correct_port_value()
+        self.ui.correct_port_value();
+    }
+
+    pub fn on_enable_tls_checkbox_changed(&self) {
+        self.ui.sync_tls_checkboxes_state();
     }
 }
 
-impl PopupDialog<ConnectDialogUi, ConnectDialogArgs, Config> for ConnectDialog {
-    fn popup(args: ConnectDialogArgs) -> JoinHandle<Config> {
+impl PopupDialog<ConnectDialogUi, ConnectDialogArgs, ConnectConfig> for ConnectDialog {
+    fn popup(args: ConnectDialogArgs) -> JoinHandle<ConnectConfig> {
         thread::spawn(move || {
             let data = Self {
                 args,

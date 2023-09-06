@@ -1,5 +1,6 @@
 
 use std::cell::RefCell;
+use std::fmt;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
@@ -7,10 +8,11 @@ use std::time::Instant;
 
 use clipboard_win::formats;
 use clipboard_win::set_clipboard;
+use native_tls::TlsConnector;
 use nwg::NativeUi;
 use postgres::config::Config;
-use postgres::Client;
 use postgres::NoTls;
+use postgres_native_tls::MakeTlsConnector;
 
 use crate::*;
 use dialogs::DialogJoiner;
@@ -19,16 +21,17 @@ use dialogs::PopupDialog;
 use dialogs::PopupDialogArgs;
 use notice::SyncNotice;
 use notice::SyncNoticeSender;
+use connect_dialog::ConnectConfig;
 use connect_check_dialog_ui::ConnectCheckDialogUi;
 
 #[derive(Default)]
 pub struct ConnectCheckDialogArgs {
     notice_sender:  RefCell<SyncNoticeSender>,
-    config: Config,
+    config: ConnectConfig,
 }
 
 impl ConnectCheckDialogArgs {
-    pub fn new(notice: &SyncNotice, config: Config) -> Self {
+    pub fn new(notice: &SyncNotice, config: ConnectConfig) -> Self {
         Self {
             notice_sender: RefCell::new(notice.sender()),
             config,
@@ -55,6 +58,37 @@ impl Default for ConnectCheckDialogResult {
         Self {
             value: Ok(String::new())
         }
+    }
+}
+
+#[derive(Debug)]
+struct ConnectCheckDialogError {
+    message: String
+}
+
+impl ConnectCheckDialogError {
+    fn new<E: fmt::Display>(e: &E) -> Self {
+        Self {
+            message: format!("{}", e)
+        }
+    }
+}
+
+impl fmt::Display for ConnectCheckDialogError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
+impl From<postgres::Error> for ConnectCheckDialogError {
+    fn from(value: postgres::Error) -> Self {
+        Self::new(&value)
+    }
+}
+
+impl From<native_tls::Error> for ConnectCheckDialogError {
+    fn from(value: native_tls::Error) -> Self {
+        Self::new(&value)
     }
 }
 
@@ -159,8 +193,26 @@ impl ConnectCheckResult {
     }
 }
 
-fn check_postgres_conn(config: &Config) -> Result<String, postgres::Error> {
-    let mut client = config.connect(NoTls)?;
+fn check_postgres_conn(config: &ConnectConfig) -> Result<String, ConnectCheckDialogError> {
+    let pgconf = Config::new()
+        .host(&config.hostname)
+        .port(config.port)
+        .user(&config.username)
+        .password(&config.password)
+        .connect_timeout(Duration::from_secs(10))
+        .clone();
+
+    let mut client = if config.enable_tls {
+        let connector = TlsConnector::builder()
+            .danger_accept_invalid_certs(config.accept_invalid_tls)
+            .danger_accept_invalid_hostnames(config.accept_invalid_tls)
+            .build()?;
+        let tls = MakeTlsConnector::new(connector);
+        pgconf.connect(tls)?
+    } else {
+        pgconf.connect(NoTls)?
+    };
+
     let vec = client.query("select version()", &[])?;
     let row = &vec[0];
     let res: String = row.get("version");

@@ -3,8 +3,6 @@ use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::process::Stdio;
 
-use postgres::config::Config;
-
 use crate::*;
 use dialogs::DialogJoiner;
 use dialogs::DialogUi;
@@ -12,6 +10,7 @@ use dialogs::PopupDialog;
 
 use about_dialog::AboutDialog;
 use about_dialog::AboutDialogArgs;
+use connect_dialog::ConnectConfig;
 use connect_dialog::ConnectDialog;
 use connect_dialog::ConnectDialogArgs;
 use app_window_ui::AppWindowUi;
@@ -21,7 +20,7 @@ pub struct AppWindow {
     pub ui: AppWindowUi,
 
     about_dialog_joiner: DialogJoiner<()>,
-    connect_dialog_joiner: DialogJoiner<Config>,
+    connect_dialog_joiner: DialogJoiner<ConnectConfig>,
 }
 
 impl AppWindow {

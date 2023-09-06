@@ -5,11 +5,11 @@ use std::ops::Deref;
 use nwg::stretch::style::AlignSelf;
 use nwg::stretch::style::JustifyContent;
 use nwg::stretch::style::FlexDirection;
-use postgres::config::Config;
 
 use crate::*;
 use dialogs::DialogUi;
 use dialogs::PopupDialog;
+use connect_dialog::ConnectConfig;
 use connect_dialog::ConnectDialog;
 use nwg::Window;
 
@@ -27,6 +27,8 @@ pub struct ConnectDialogUi {
     username_input: nwg::TextInput,
     password_label: nwg::Label,
     password_input: nwg::TextInput,
+    enable_tls_checkbox: nwg::CheckBox,
+    accept_invalid_tls_checkbox: nwg::CheckBox,
 
     test_button: nwg::Button,
     close_button: nwg::Button,
@@ -36,6 +38,8 @@ pub struct ConnectDialogUi {
     port_layout: nwg::FlexboxLayout,
     username_layout: nwg::FlexboxLayout,
     password_layout: nwg::FlexboxLayout,
+    enable_tls_layout: nwg::FlexboxLayout,
+    accept_invalid_tls_layout: nwg::FlexboxLayout,
 
     spacer_layout: nwg::FlexboxLayout,
     buttons_layout: nwg::FlexboxLayout,
@@ -55,7 +59,7 @@ impl ConnectDialogUi {
             return;
         }
         let num = match text.parse::<u128>() {
-            Err(e) => {
+            Err(_) => {
                 self.port_input.set_text("5432");
                 return;
             },
@@ -66,17 +70,25 @@ impl ConnectDialogUi {
         }
     }
 
-    pub fn get_input_postgres_config(&self) -> Config {
+    pub fn config_from_input(&self) -> ConnectConfig {
         let port = match self.port_input.text().parse::<u16>() {
             Ok(n) => n,
-            Err(e) => 5432,
+            Err(_) => 5432,
         };
-        Config::new()
-            .host(&self.hostname_input.text())
-            .port(port)
-            .user(&self.username_input.text())
-            .password(&self.password_input.text())
-            .clone()
+        ConnectConfig {
+            hostname: self.hostname_input.text(),
+            port,
+            username: self.username_input.text(),
+            password: self.password_input.text(),
+            enable_tls: self.enable_tls_checkbox.check_state() == nwg::CheckBoxState::Checked,
+            accept_invalid_tls: self.enable_tls_checkbox.enabled() &&
+                self.accept_invalid_tls_checkbox.check_state() == nwg::CheckBoxState::Checked
+        }
+    }
+
+    pub fn sync_tls_checkboxes_state(&self) {
+        let enabled = self.enable_tls_checkbox.check_state() == nwg::CheckBoxState::Checked;
+        self.accept_invalid_tls_checkbox.set_enabled(enabled);
     }
 }
 
@@ -93,7 +105,7 @@ impl DialogUi for ConnectDialogUi {
             .build(&mut self.font_normal)?;
 
         nwg::Window::builder()
-            .size((480, 180))
+            .size((480, 240))
             .center(true)
             .title("Connect")
             .build(&mut self.window)?;
@@ -153,6 +165,23 @@ impl DialogUi for ConnectDialogUi {
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.password_input)?;
+        nwg::CheckBox::builder()
+            .check_state(nwg::CheckBoxState::Checked)
+            .text("Enable TLS")
+            .font(Some(&self.font_normal))
+            .parent(&self.window)
+            .build(&mut self.enable_tls_checkbox)?;
+        events::builder()
+            .control(&self.enable_tls_checkbox)
+            .event(nwg::Event::OnButtonClick)
+            .handler(ConnectDialog::on_enable_tls_checkbox_changed)
+            .build(&mut self.events)?;
+        nwg::CheckBox::builder()
+            .check_state(nwg::CheckBoxState::Checked)
+            .text("Accept invalid TLS certificates/hosts")
+            .font(Some(&self.font_normal))
+            .parent(&self.window)
+            .build(&mut self.accept_invalid_tls_checkbox)?;
 
         nwg::Button::builder()
             .text("Test")
@@ -261,6 +290,36 @@ impl DialogUi for ConnectDialogUi {
             .parent(&self.window)
             .flex_direction(FlexDirection::Row)
             .auto_spacing(None)
+            .child(&self.enable_tls_checkbox)
+            .child_size(ui::size_builder()
+                .width_auto()
+                .height_input_form_row()
+                .build())
+            .child_flex_grow(1.0)
+            .child_margin(ui::margin_builder()
+                .start_no_label_normal()
+                .build())
+            .build_partial(&self.enable_tls_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&self.window)
+            .flex_direction(FlexDirection::Row)
+            .auto_spacing(None)
+            .child(&self.accept_invalid_tls_checkbox)
+            .child_size(ui::size_builder()
+                .width_auto()
+                .height_input_form_row()
+                .build())
+            .child_flex_grow(1.0)
+            .child_margin(ui::margin_builder()
+                .start_no_label_normal()
+                .build())
+            .build_partial(&self.accept_invalid_tls_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&self.window)
+            .flex_direction(FlexDirection::Row)
+            .auto_spacing(None)
             .build_partial(&self.spacer_layout)?;
 
         nwg::FlexboxLayout::builder()
@@ -290,6 +349,8 @@ impl DialogUi for ConnectDialogUi {
             .child_layout(&self.port_layout)
             .child_layout(&self.username_layout)
             .child_layout(&self.password_layout)
+            .child_layout(&self.enable_tls_layout)
+            .child_layout(&self.accept_invalid_tls_layout)
             .child_layout(&self.spacer_layout)
             .child_flex_grow(1.0)
             .child_layout(&self.buttons_layout)
