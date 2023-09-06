@@ -8,6 +8,8 @@ mod connect_check_dialog;
 mod connect_check_dialog_ui;
 mod connect_dialog;
 mod connect_dialog_ui;
+mod load_settings_dialog;
+mod load_settings_dialog_ui;
 
 mod dialogs;
 mod events;
@@ -22,7 +24,8 @@ fn main() {
     nwg::Font::set_global_family("Segoe UI").expect("Failed to set default font");
 
     let data = app_window::AppWindow::new();
-    let _app = app_window::AppWindow::build_ui(data).expect("Failed to build UI");
+    let app = app_window::AppWindow::build_ui(data).expect("Failed to build UI");
+    app.open_connect_dialog();
 
     nwg::dispatch_thread_events();
 }

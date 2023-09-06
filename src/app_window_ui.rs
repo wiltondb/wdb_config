@@ -3,6 +3,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::ops::Deref;
 
+use nwg::stretch::style::JustifyContent;
 use nwg::stretch::style::FlexDirection;
 
 use crate::*;
@@ -13,14 +14,10 @@ use nwg::{NwgError, Window};
 #[derive(Default)]
 pub struct AppWindowUi {
     events: events::Events<AppWindow>,
+    font_normal: nwg::Font,
+    font_small: nwg::Font,
 
     window: nwg::Window,
-    input1: nwg::TextInput,
-    button2: nwg::Button,
-    pub data_view: nwg::ListView,
-    button5: nwg::Button,
-    button6: nwg::Button,
-    pub status_bar: nwg::StatusBar,
 
     file_menu: nwg::Menu,
     file_connect_menu_item: nwg::MenuItem,
@@ -29,15 +26,36 @@ pub struct AppWindowUi {
     help_about_menu_item: nwg::MenuItem,
     help_website_menu_item: nwg::MenuItem,
 
+    main_view: nwg::ListView,
+    reload_button: nwg::Button,
+    close_button: nwg::Button,
+    status_bar: nwg::StatusBar,
+
     root_layout: nwg::FlexboxLayout,
-    row1_layout: nwg::FlexboxLayout,
-    row2_layout: nwg::FlexboxLayout,
-    row3_layout: nwg::FlexboxLayout,
+    main_view_layout: nwg::FlexboxLayout,
+    buttons_layout: nwg::FlexboxLayout,
 
-    small_font: nwg::Font,
+    about_dialog_notice: notice::SyncNotice,
+    connect_dialog_notice: notice::SyncNotice,
+    load_settings_dialog_notice: notice::SyncNotice,
+}
 
-    pub about_dialog_notice: notice::SyncNotice,
-    pub connect_dialog_notice: notice::SyncNotice,
+impl AppWindowUi {
+    pub fn about_dialog_notice(&self) -> &notice::SyncNotice {
+        &self.about_dialog_notice
+    }
+
+    pub fn connect_dialog_notice(&self) -> &notice::SyncNotice {
+        &self.connect_dialog_notice
+    }
+
+    pub fn load_settings_dialog_notice(&self) -> &notice::SyncNotice {
+        &self.load_settings_dialog_notice
+    }
+
+    pub fn set_status_bar_hostname(&self, hostname: &str) {
+        self.status_bar.set_text(0, &format!("  DB host: {}", hostname));
+    }
 }
 
 impl DialogUi for AppWindowUi {
@@ -46,11 +64,17 @@ impl DialogUi for AppWindowUi {
     }
 
     fn build_controls(&mut self) -> Result<(), NwgError> {
-        // font
+        // fonts
         nwg::Font::builder()
-            .size(10)
-            //.weight(1000)
-            .build(&mut self.small_font)?;
+            .size(ui::font_size_builder()
+                .normal()
+                .build())
+            .build(&mut self.font_normal)?;
+        nwg::Font::builder()
+            .size(ui::font_size_builder()
+                .small()
+                .build())
+            .build(&mut self.font_small)?;
 
         // window
 
@@ -62,7 +86,7 @@ impl DialogUi for AppWindowUi {
         events::builder()
             .control(&self.window)
             .event(nwg::Event::OnWindowClose)
-            .handler(AppWindow::exit)
+            .handler(AppWindow::close)
             .build(&mut self.events)?;
 
         // menu
@@ -87,7 +111,7 @@ impl DialogUi for AppWindowUi {
         events::builder()
             .control(&self.file_exit_menu_item)
             .event(nwg::Event::OnMenuItemSelected)
-            .handler(AppWindow::exit)
+            .handler(AppWindow::close)
             .build(&mut self.events)?;
 
         nwg::Menu::builder()
@@ -113,35 +137,7 @@ impl DialogUi for AppWindowUi {
             .handler(AppWindow::open_website)
             .build(&mut self.events)?;
 
-        // buttons
-
-        nwg::TextInput::builder()
-            .text("Btn 1")
-            .font(Some(&self.small_font))
-            .parent(&self.window)
-            .build(&mut self.input1)?;
-
-        nwg::Button::builder()
-            .text("Btn 2")
-            .parent(&self.window)
-            .build(&mut self.button2)?;
-        events::builder()
-            .control(&self.button2)
-            .event(nwg::Event::OnButtonClick)
-            .handler(AppWindow::load_data)
-            .build(&mut self.events)?;
-
-        nwg::Button::builder()
-            .text("Btn 5")
-            .parent(&self.window)
-            .build(&mut self.button5)?;
-
-        nwg::Button::builder()
-            .text("Btn 6")
-            .parent(&self.window)
-            .build(&mut self.button6)?;
-
-        // other
+        // main view
 
         nwg::ListView::builder()
             .parent(&self.window)
@@ -149,12 +145,38 @@ impl DialogUi for AppWindowUi {
             .list_style(nwg::ListViewStyle::Detailed)
             .focus(true)
             .ex_flags(nwg::ListViewExFlags::GRID | nwg::ListViewExFlags::FULL_ROW_SELECT)
-            .build(&mut self.data_view)?;
+            .build(&mut self.main_view)?;
+
+        // buttons
+
+        nwg::Button::builder()
+            .text("Load settings")
+            .font(Some(&self.font_normal))
+            .parent(&self.window)
+            .build(&mut self.reload_button)?;
+        events::builder()
+            .control(&self.reload_button)
+            .event(nwg::Event::OnButtonClick)
+            .handler(AppWindow::open_load_dialog)
+            .build(&mut self.events)?;
+
+        nwg::Button::builder()
+            .text("Close")
+            .font(Some(&self.font_normal))
+            .parent(&self.window)
+            .build(&mut self.close_button)?;
+        events::builder()
+            .control(&self.close_button)
+            .event(nwg::Event::OnButtonClick)
+            .handler(AppWindow::close)
+            .build(&mut self.events)?;
+
+        // other
 
         nwg::StatusBar::builder()
             .parent(&self.window)
-            .text("Ready for tests")
-            .font(Some(&self.small_font))
+            .text("  DB host: none")
+            .font(Some(&self.font_small))
             .build(&mut self.status_bar)?;
 
         notice::builder()
@@ -175,56 +197,58 @@ impl DialogUi for AppWindowUi {
             .handler(AppWindow::await_connect_dialog)
             .build(&mut self.events)?;
 
+        notice::builder()
+            .parent(&self.window)
+            .build(&mut self.load_settings_dialog_notice)?;
+        events::builder()
+            .control(&self.load_settings_dialog_notice.notice)
+            .event(nwg::Event::OnNotice)
+            .handler(AppWindow::await_load_dialog)
+            .build(&mut self.events)?;
+
         Ok(())
     }
 
     fn build_layout(&mut self) -> Result<(), NwgError> {
-        nwg::FlexboxLayout::builder()
-            .parent(&self.window)
-            .flex_direction(FlexDirection::Row)
-            .child(&self.input1)
-            .child_size(ui::size_builder()
-                .width_button_normal()
-                .height_button()
-                .build())
-            .child(&self.button2)
-            .child_size(ui::size_builder()
-                .width_button_normal()
-                .height_button()
-                .build())
-            .child_flex_grow(1.0)
-            .build_partial(&self.row1_layout)?;
 
         nwg::FlexboxLayout::builder()
             .parent(&self.window)
             .flex_direction(FlexDirection::Row)
-            .child(&self.data_view)
+            .child(&self.main_view)
             .child_flex_grow(1.0)
-            .build_partial(&self.row2_layout)?;
+            .auto_spacing(None)
+            .build_partial(&self.main_view_layout)?;
 
         nwg::FlexboxLayout::builder()
             .parent(&self.window)
             .flex_direction(FlexDirection::Row)
-            .child(&self.button5)
+            .justify_content(JustifyContent::FlexEnd)
+            .auto_spacing(None)
+            .child(&self.reload_button)
+            .child_size(ui::size_builder()
+                .width_button_wide()
+                .height_button()
+                .build())
+            .child_margin(ui::margin_builder()
+                .bottom_pt(22)
+                .build())
+            .child(&self.close_button)
             .child_size(ui::size_builder()
                 .width_button_normal()
                 .height_button()
                 .build())
-            .child(&self.button6)
-            .child_size(ui::size_builder()
-                .width_button_normal()
-                .height_button()
+            .child_margin(ui::margin_builder()
+                .start_pt(5)
+                .bottom_pt(22)
                 .build())
-            .child_flex_grow(1.0)
-            .build_partial(&self.row3_layout)?;
+            .build_partial(&self.buttons_layout)?;
 
         nwg::FlexboxLayout::builder()
             .parent(&self.window)
             .flex_direction(FlexDirection::Column)
-            .child_layout(&self.row1_layout)
-            .child_layout(&self.row2_layout)
+            .child_layout(&self.main_view_layout)
             .child_flex_grow(1.0)
-            .child_layout(&self.row3_layout)
+            .child_layout(&self.buttons_layout)
             .build(&self.root_layout)?;
 
         Ok(())
@@ -236,11 +260,16 @@ pub struct AppWindowNwg {
     default_handler: RefCell<Option<nwg::EventHandler>>
 }
 
+impl AppWindowNwg {
+    pub fn open_connect_dialog(&self) {
+        self.inner.open_connect_dialog();
+    }
+}
+
 impl nwg::NativeUi<AppWindowNwg> for AppWindow {
     fn build_ui(mut data: AppWindow) -> Result<AppWindowNwg, nwg::NwgError> {
-        data.ui.build_controls()?;
-        data.ui.build_layout()?;
-        dialogs::shake_window(data.ui.window());
+        data.ui_mut().build_controls()?;
+        data.ui_mut().build_layout()?;
 
         let wrapper = AppWindowNwg {
             inner:  Rc::new(data),
@@ -250,7 +279,7 @@ impl nwg::NativeUi<AppWindowNwg> for AppWindow {
         let data_ref = Rc::downgrade(&wrapper.inner);
         let handle_events = move |evt, _evt_data, handle| {
             if let Some(evt_data) = data_ref.upgrade() {
-                for eh in evt_data.ui.events.iter() {
+                for eh in evt_data.ui().events.iter() {
                     if handle == eh.control_handle && evt == eh.event {
                         (eh.handler)(&evt_data);
                         break;
@@ -259,7 +288,7 @@ impl nwg::NativeUi<AppWindowNwg> for AppWindow {
             }
         };
 
-        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.ui.window.handle, handle_events));
+        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.ui().window.handle, handle_events));
 
         return Ok(wrapper);
     }

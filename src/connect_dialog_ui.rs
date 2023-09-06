@@ -162,6 +162,7 @@ impl DialogUi for ConnectDialogUi {
             .build(&mut self.password_label)?;
         nwg::TextInput::builder()
             .password(Some('*'))
+            .text("wilton")
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.password_input)?;

@@ -107,4 +107,8 @@ impl PopupDialog<ConnectDialogUi, ConnectDialogArgs, ConnectConfig> for ConnectD
     fn ui_mut(&mut self) -> &mut ConnectDialogUi {
         &mut self.ui
     }
+
+    fn result(&self) -> ConnectConfig {
+        self.ui.config_from_input()
+    }
 }

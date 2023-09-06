@@ -126,6 +126,11 @@ impl FontSizeBuilder {
         self
     }
 
+    pub fn small(mut self) -> Self {
+        self.size = 14;
+        self
+    }
+
     pub fn build(self) -> u32 {
         self.size
     }
@@ -149,6 +154,11 @@ impl MarginBuilder {
         self
     }
 
+    pub fn start_default(mut self) -> Self {
+        self.start = 5;
+        self
+    }
+
     pub fn start_no_label_normal(mut self) -> Self {
         self.start = 105;
         self
@@ -159,13 +169,28 @@ impl MarginBuilder {
         self
     }
 
+    pub fn end_default(mut self) -> Self {
+        self.end = 5;
+        self
+    }
+
     pub fn top_pt(mut self, top: u32) -> Self {
         self.top = top;
         self
     }
 
+    pub fn top_default(mut self) -> Self {
+        self.top = 5;
+        self
+    }
+
     pub fn bottom_pt(mut self, bottom: u32) -> Self {
         self.bottom = bottom;
+        self
+    }
+
+    pub fn bottom_default(mut self) -> Self {
+        self.bottom = 5;
         self
     }
 
