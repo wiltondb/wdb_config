@@ -1,6 +1,13 @@
 
+mod args;
+mod controls;
+mod error;
+mod events;
+mod layout;
+mod nui;
+mod result;
+
 use std::cell::RefCell;
-use std::fmt;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
@@ -15,100 +22,34 @@ use postgres::NoTls;
 use postgres_native_tls::MakeTlsConnector;
 
 use crate::*;
-use dialogs::DialogJoiner;
-use dialogs::DialogUi;
-use dialogs::PopupDialog;
-use dialogs::PopupDialogArgs;
-use notice::SyncNotice;
-use notice::SyncNoticeSender;
+use nwg_ui as ui;
+use ui::Controls;
+use ui::PopupDialog;
 use connect_dialog::ConnectConfig;
-use load_settings_dialog_ui::LoadSettingsDialogUi;
+pub use args::LoadSettingsDialogArgs;
+pub(self) use controls::LoadSettingsDialogControls;
+use events::LoadSettingsDialogEvents;
+use error::LoadSettingsDialogError;
+use layout::LoadSettingsDialogLayout;
+pub use result::SettingRecord;
+pub use result::LoadSettingsDialogResult;
+use crate::nwg_ui::PopupArgs;
 
-#[derive(Default)]
-pub struct LoadSettingsDialogArgs {
-    notice_sender:  RefCell<SyncNoticeSender>,
-    config: ConnectConfig,
-}
-
-impl LoadSettingsDialogArgs {
-    pub fn new(notice: &SyncNotice, config: ConnectConfig) -> Self {
-        Self {
-            notice_sender: RefCell::new(notice.sender()),
-            config,
-        }
-    }
-
-    pub fn send_notice(&self) {
-        self.notice_sender.borrow().send()
-    }
-}
-
-impl PopupDialogArgs for LoadSettingsDialogArgs {
-    fn notify_parent(&self) {
-        self.notice_sender.borrow().send()
-    }
-}
-
-#[derive(Default, Debug, Clone)]
-pub struct SettingRecord {
-    pub name: String,
-    pub setting: String,
-    pub description: String,
-}
-
-#[derive(Default)]
-pub struct LoadSettingsDialogResult {
-    pub records: Vec<SettingRecord>
-}
-
-impl LoadSettingsDialogResult {
-    pub fn new(records: Vec<SettingRecord>) -> Self {
-        Self { records }
-    }
-}
-
-#[derive(Debug)]
-struct LoadSettingsDialogError {
-    message: String
-}
-
-impl LoadSettingsDialogError {
-    fn new<E: fmt::Display>(e: &E) -> Self {
-        Self {
-            message: format!("{}", e)
-        }
-    }
-}
-
-impl fmt::Display for LoadSettingsDialogError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl From<postgres::Error> for LoadSettingsDialogError {
-    fn from(value: postgres::Error) -> Self {
-        Self::new(&value)
-    }
-}
-
-impl From<native_tls::Error> for LoadSettingsDialogError {
-    fn from(value: native_tls::Error) -> Self {
-        Self::new(&value)
-    }
-}
 
 #[derive(Default)]
 pub struct LoadSettingsDialog {
-    args: LoadSettingsDialogArgs,
-    ui: LoadSettingsDialogUi,
+    pub(self) controls: LoadSettingsDialogControls,
+    pub(self) layout: LoadSettingsDialogLayout,
+    pub(self) events: LoadSettingsDialogEvents,
+
     loaded_settings: RefCell<LoadSettingsDialogResult>,
-    load_joiner: DialogJoiner<LoadSettingsResult>,
+    args: LoadSettingsDialogArgs,
+    load_joiner: ui::PopupJoiner<LoadSettingsResult>,
 }
 
 impl LoadSettingsDialog {
     pub fn spawn_load(&self) -> JoinHandle<LoadSettingsResult> {
-        let sender = self.ui.load_notice().sender();
+        let sender = self.controls.load_notice.sender();
         let config = self.args.config.clone();
         thread::spawn(move || {
             let start = Instant::now();
@@ -126,29 +67,38 @@ impl LoadSettingsDialog {
     }
 
     pub fn on_load_complete(&self) {
-        self.ui.load_notice().receive();
+        self.controls.load_notice.receive();
         let res = self.load_joiner.await_result();
-        self.ui.stop_progress_bar(res.success);
+        self.stop_progress_bar(res.success);
         if res.success {
             self.loaded_settings.replace(LoadSettingsDialogResult::new(res.records));
             self.close();
             return;
         }
-        self.ui.set_label_text("Load settings failed");
-        self.ui.set_details_text(&res.message);
+        self.controls.label.set_text("Load settings failed");
+        self.controls.details_box.set_text(&res.message);
     }
 
     pub fn copy_to_clipboard(&self) {
-        let text = self.ui.details_text();
+        let text = self.controls.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
     }
 
     pub fn set_load_join_handle(&self, join_handle: JoinHandle<LoadSettingsResult>) {
         self.load_joiner.set_join_handle(join_handle);
     }
+
+    pub fn stop_progress_bar(&self, success: bool) {
+        self.controls.progress_bar.set_marquee(false, 0);
+        self.controls.progress_bar.remove_flags(nwg::ProgressBarFlags::MARQUEE);
+        self.controls.progress_bar.set_pos(1);
+        if !success {
+            self.controls.progress_bar.set_state(nwg::ProgressBarState::Error)
+        }
+    }
 }
 
-impl PopupDialog<LoadSettingsDialogUi, LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadSettingsDialog {
+impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadSettingsDialog {
     fn popup(args: LoadSettingsDialogArgs) -> JoinHandle<LoadSettingsDialogResult> {
         thread::spawn(move || {
             let data = Self {
@@ -164,17 +114,9 @@ impl PopupDialog<LoadSettingsDialogUi, LoadSettingsDialogArgs, LoadSettingsDialo
     }
 
     fn close(&self) {
-        self.args.send_notice();
-        self.ui.hide_window();
+        self.args.notify_parent();
+        self.controls.hide_window();
         nwg::stop_thread_dispatch();
-    }
-
-    fn ui(&self) -> &LoadSettingsDialogUi {
-        &self.ui
-    }
-
-    fn ui_mut(&mut self) -> &mut LoadSettingsDialogUi {
-        &mut self.ui
     }
 
     fn result(&self) -> LoadSettingsDialogResult {

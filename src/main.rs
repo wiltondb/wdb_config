@@ -1,23 +1,13 @@
 #![windows_subsystem = "windows"]
 
 mod about_dialog;
-mod about_dialog_ui;
 mod app_window;
-mod app_window_ui;
-mod connect_check_dialog;
-mod connect_check_dialog_ui;
 mod connect_dialog;
-mod connect_dialog_ui;
+mod connect_check_dialog;
 mod load_settings_dialog;
-mod load_settings_dialog_ui;
-
-mod dialogs;
-mod events;
-mod notice;
-mod ui;
+mod nwg_ui;
 
 use nwg::NativeUi;
-
 
 fn main() {
     nwg::init().expect("Failed to init Native Windows GUI");

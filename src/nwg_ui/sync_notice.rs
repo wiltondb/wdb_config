@@ -57,7 +57,7 @@ pub struct SyncNoticeBuilder {
 }
 
 impl SyncNoticeBuilder {
-    fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self {
             parent: None,
         }
@@ -86,9 +86,3 @@ impl SyncNoticeBuilder {
     }
 
 }
-
-pub fn builder() -> SyncNoticeBuilder {
-    SyncNoticeBuilder::new()
-}
-
-

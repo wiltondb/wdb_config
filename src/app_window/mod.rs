@@ -1,33 +1,42 @@
 
+mod controls;
+mod events;
+mod layout;
+mod nui;
+
 use std::cell::RefCell;
 use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::process::Stdio;
 
 use crate::*;
-use dialogs::DialogJoiner;
-use dialogs::DialogUi;
-use dialogs::PopupDialog;
+use nwg_ui as ui;
+use ui::Controls;
+use ui::PopupDialog;
 
 use about_dialog::AboutDialog;
 use about_dialog::AboutDialogArgs;
-use app_window_ui::AppWindowUi;
 use connect_dialog::ConnectConfig;
 use connect_dialog::ConnectDialog;
 use connect_dialog::ConnectDialogArgs;
 use load_settings_dialog::LoadSettingsDialog;
 use load_settings_dialog::LoadSettingsDialogArgs;
 use load_settings_dialog::LoadSettingsDialogResult;
+pub(self) use controls::AppWindowControls;
+pub(self) use events::AppWindowEvents;
+use layout::AppWindowLayout;
 
 #[derive(Default)]
 pub struct AppWindow {
-    ui: AppWindowUi,
+    pub(self) controls: AppWindowControls,
+    pub(self) layout: AppWindowLayout,
+    pub(self) events: AppWindowEvents,
 
     config: RefCell<ConnectConfig>,
 
-    about_dialog_joiner: DialogJoiner<()>,
-    connect_dialog_joiner: DialogJoiner<ConnectConfig>,
-    load_settings_dialog_joiner: DialogJoiner<LoadSettingsDialogResult>,
+    about_dialog_joiner: ui::PopupJoiner<()>,
+    connect_dialog_joiner: ui::PopupJoiner<ConnectConfig>,
+    load_settings_dialog_joiner: ui::PopupJoiner<LoadSettingsDialogResult>,
 }
 
 impl AppWindow {
@@ -36,17 +45,10 @@ impl AppWindow {
         Default::default()
     }
 
-    pub fn ui(&self) -> &AppWindowUi {
-        &self.ui
-    }
-
-    pub fn ui_mut(&mut self) -> &mut AppWindowUi {
-        &mut self.ui
-    }
-
+    #[allow(dead_code)]
     pub fn load_data(&self) {
         /*
-        let dv = &self.ui.data_view;
+        let dv = &self.controls.data_view;
 
         dv.insert_column("Name");
         dv.set_column_sort_arrow(0, Some(nwg::ListViewColumnSortArrow::Down));
@@ -99,46 +101,50 @@ impl AppWindow {
     }
 
     pub fn open_about_dialog(&self) {
-        self.ui.window().set_enabled(false);
-        let args = AboutDialogArgs::new(&self.ui.about_dialog_notice());
+        self.controls.window.set_enabled(false);
+        let args = AboutDialogArgs::new(&self.controls.about_notice);
         let join_handle = AboutDialog::popup(args);
         self.about_dialog_joiner.set_join_handle(join_handle);
     }
 
     pub fn await_about_dialog(&self) {
-        self.ui.window().set_enabled(true);
-        self.ui.about_dialog_notice().receive();
+        self.controls.window.set_enabled(true);
+        self.controls.about_notice.receive();
         let _ = self.about_dialog_joiner.await_result();
     }
 
     pub fn open_connect_dialog(&self) {
-        self.ui.window().set_enabled(false);
-        let args = ConnectDialogArgs::new(&self.ui.connect_dialog_notice(), Default::default());
+        self.controls.window.set_enabled(false);
+        let args = ConnectDialogArgs::new(&self.controls.connect_notice, self.config.borrow().clone());
         let join_handle = ConnectDialog::popup(args);
         self.connect_dialog_joiner.set_join_handle(join_handle);
     }
 
     pub fn await_connect_dialog(&self) {
-        self.ui.window().set_enabled(true);
-        self.ui.connect_dialog_notice().receive();
+        self.controls.window.set_enabled(true);
+        self.controls.connect_notice.receive();
         let config = self.connect_dialog_joiner.await_result();
         self.config.replace(config);
-        self.ui.set_status_bar_hostname(&self.config.borrow().hostname);
+        self.set_status_bar_hostname(&self.config.borrow().hostname);
+    }
+
+    pub fn set_status_bar_hostname(&self, text: &str) {
+        self.controls.status_bar.set_text(0, &format!("  DB host: {}", text));
     }
 
     pub fn open_load_dialog(&self) {
-        self.ui.window().set_enabled(false);
-        let args = LoadSettingsDialogArgs::new(&self.ui.load_settings_dialog_notice(), self.config.borrow().clone());
+        self.controls.window.set_enabled(false);
+        let args = LoadSettingsDialogArgs::new(&self.controls.load_settings_notice, self.config.borrow().clone());
         let join_handle = LoadSettingsDialog::popup(args);
         self.load_settings_dialog_joiner.set_join_handle(join_handle);
     }
 
     pub fn await_load_dialog(&self) {
-        self.ui.window().set_enabled(true);
-        self.ui.load_settings_dialog_notice().receive();
+        self.controls.window.set_enabled(true);
+        self.controls.load_settings_notice.receive();
         let res = self.load_settings_dialog_joiner.await_result();
         // todo
-        self.ui.set_status_bar_hostname(&res.records.len().to_string());
+        self.set_status_bar_hostname(&res.records.len().to_string());
     }
 
     pub fn open_website(&self) {
@@ -155,16 +161,8 @@ impl AppWindow {
     }
 
     pub fn close(&self) {
-        self.ui.window().set_visible(false);
+        self.controls.hide_window();
         nwg::stop_thread_dispatch();
     }
 
-    /*
-    pub fn init_events(&mut self) {
-        self.events = ui_events::Events::builder()
-            .add(self.window.handle, nwg::Event::OnWindowClose, Self::exit)
-            .add(self.window.handle, nwg::Event::OnWindowClose, Self::load_data)
-            .build()
-    }
-     */
 }

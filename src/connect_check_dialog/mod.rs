@@ -1,6 +1,12 @@
 
-use std::cell::RefCell;
-use std::fmt;
+mod args;
+mod controls;
+mod events;
+mod error;
+mod layout;
+mod nui;
+mod result;
+
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
@@ -15,93 +21,29 @@ use postgres::NoTls;
 use postgres_native_tls::MakeTlsConnector;
 
 use crate::*;
-use dialogs::DialogJoiner;
-use dialogs::DialogUi;
-use dialogs::PopupDialog;
-use dialogs::PopupDialogArgs;
-use notice::SyncNotice;
-use notice::SyncNoticeSender;
+use nwg_ui as ui;
+use ui::Controls;
 use connect_dialog::ConnectConfig;
-use connect_check_dialog_ui::ConnectCheckDialogUi;
-
-#[derive(Default)]
-pub struct ConnectCheckDialogArgs {
-    notice_sender:  RefCell<SyncNoticeSender>,
-    config: ConnectConfig,
-}
-
-impl ConnectCheckDialogArgs {
-    pub fn new(notice: &SyncNotice, config: ConnectConfig) -> Self {
-        Self {
-            notice_sender: RefCell::new(notice.sender()),
-            config,
-        }
-    }
-
-    pub fn send_notice(&self) {
-        self.notice_sender.borrow().send()
-    }
-}
-
-impl PopupDialogArgs for ConnectCheckDialogArgs {
-    fn notify_parent(&self) {
-        self.notice_sender.borrow().send()
-    }
-}
-
-pub struct ConnectCheckDialogResult {
-   pub value: Result<String, postgres::Error>
-}
-
-impl Default for ConnectCheckDialogResult {
-    fn default() -> Self {
-        Self {
-            value: Ok(String::new())
-        }
-    }
-}
-
-#[derive(Debug)]
-struct ConnectCheckDialogError {
-    message: String
-}
-
-impl ConnectCheckDialogError {
-    fn new<E: fmt::Display>(e: &E) -> Self {
-        Self {
-            message: format!("{}", e)
-        }
-    }
-}
-
-impl fmt::Display for ConnectCheckDialogError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl From<postgres::Error> for ConnectCheckDialogError {
-    fn from(value: postgres::Error) -> Self {
-        Self::new(&value)
-    }
-}
-
-impl From<native_tls::Error> for ConnectCheckDialogError {
-    fn from(value: native_tls::Error) -> Self {
-        Self::new(&value)
-    }
-}
+pub use args::ConnectCheckDialogArgs;
+pub(self) use controls::ConnectCheckDialogControls;
+use events::ConnectCheckDialogEvents;
+use error::ConnectCheckDialogError;
+use layout::ConnectCheckDialogLayout;
+pub use result::ConnectCheckDialogResult;
 
 #[derive(Default)]
 pub struct ConnectCheckDialog {
+    pub(self) controls: ConnectCheckDialogControls,
+    pub(self) layout: ConnectCheckDialogLayout,
+    pub(self) events: ConnectCheckDialogEvents,
+
     args: ConnectCheckDialogArgs,
-    ui: ConnectCheckDialogUi,
-    check_joiner: DialogJoiner<ConnectCheckResult>,
+    check_joiner: ui::PopupJoiner<ConnectCheckResult>,
 }
 
 impl ConnectCheckDialog {
     pub fn spawn_connection_check(&self) -> JoinHandle<ConnectCheckResult> {
-        let sender = self.ui.check_notice().sender();
+        let sender = self.controls.check_notice.sender();
         let config = self.args.config.clone();
         thread::spawn(move || {
             let start = Instant::now();
@@ -119,29 +61,38 @@ impl ConnectCheckDialog {
     }
 
     pub fn on_connection_check_complete(&self) {
-        self.ui.check_notice().receive();
+        self.controls.check_notice.receive();
         let res = self.check_joiner.await_result();
-        self.ui.stop_progress_bar(res.success);
+        self.stop_progress_bar(res.success);
         let label = if res.success {
             "Connection successful"
         } else {
             "Connection failed"
         };
-        self.ui.set_label_text(label);
-        self.ui.set_details_text(&res.message);
+        self.controls.label.set_text(label);
+        self.controls.details_box.set_text(&res.message);
     }
 
     pub fn copy_to_clipboard(&self) {
-        let text = self.ui.details_text();
+        let text = self.controls.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
     }
 
     pub fn set_check_join_handle(&self, join_handle: JoinHandle<ConnectCheckResult>) {
         self.check_joiner.set_join_handle(join_handle);
     }
+
+    pub fn stop_progress_bar(&self, success: bool) {
+        self.controls.progress_bar.set_marquee(false, 0);
+        self.controls.progress_bar.remove_flags(nwg::ProgressBarFlags::MARQUEE);
+        self.controls.progress_bar.set_pos(1);
+        if !success {
+            self.controls.progress_bar.set_state(nwg::ProgressBarState::Error)
+        }
+    }
 }
 
-impl PopupDialog<ConnectCheckDialogUi, ConnectCheckDialogArgs, ConnectCheckDialogResult> for ConnectCheckDialog {
+impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for ConnectCheckDialog {
     fn popup(args: ConnectCheckDialogArgs) -> JoinHandle<ConnectCheckDialogResult> {
         thread::spawn(move || {
             let data = Self {
@@ -156,18 +107,15 @@ impl PopupDialog<ConnectCheckDialogUi, ConnectCheckDialogArgs, ConnectCheckDialo
         })
     }
 
+    fn result(&self) -> ConnectCheckDialogResult {
+        // todo
+        Default::default()
+    }
+
     fn close(&self) {
         self.args.send_notice();
-        self.ui.hide_window();
+        self.controls.hide_window();
         nwg::stop_thread_dispatch();
-    }
-
-    fn ui(&self) -> &ConnectCheckDialogUi {
-        &self.ui
-    }
-
-    fn ui_mut(&mut self) -> &mut ConnectCheckDialogUi {
-        &mut self.ui
     }
 }
 

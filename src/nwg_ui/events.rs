@@ -1,7 +1,11 @@
 
-pub type Events<W> = Vec<EventHandler<W>>;
+use super::*;
 
-pub struct EventHandler<W> {
+pub trait Events<C: Controls> {
+    fn build(&mut self, c: &C) -> Result<(), nwg::NwgError>;
+}
+
+pub struct Event<W> {
     pub control_handle: nwg::ControlHandle,
     pub event: nwg::Event,
     pub handler: fn(&W) -> ()
@@ -14,7 +18,7 @@ pub struct EventBuilder<W> {
 }
 
 impl<W> EventBuilder<W> {
-    pub fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self {
             control_handle: None,
             event: None,
@@ -37,7 +41,7 @@ impl<W> EventBuilder<W> {
         self
     }
 
-    pub fn build(self, events: &mut Vec<EventHandler<W>>) -> Result<(), nwg::NwgError> {
+    pub fn build(self, events: &mut Vec<Event<W>>) -> Result<(), nwg::NwgError> {
         let control_handle = match self.control_handle {
             None => return Err(nwg::NwgError::events_binding("Control not specified".to_string())),
             Some(ch) => Ok::<nwg::ControlHandle, nwg::NwgError>(ch)
@@ -51,14 +55,10 @@ impl<W> EventBuilder<W> {
             Some(h) => Ok::<fn(&W) -> (), nwg::NwgError>(h)
         }?;
 
-        events.push(EventHandler {
+        events.push(Event {
             control_handle, event, handler
         });
 
         Ok(())
     }
-}
-
-pub fn builder<W>() -> EventBuilder<W> {
-    EventBuilder::new()
 }
