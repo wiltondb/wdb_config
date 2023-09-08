@@ -3,6 +3,8 @@ use super::*;
 
 #[derive(Default)]
 pub(super) struct ConnectCheckDialogControls {
+    layout: ConnectCheckDialogLayout,
+
     pub(super) font_normal: nwg::Font,
 
     pub(super) window: nwg::Window,
@@ -68,6 +70,8 @@ impl ui::Controls for ConnectCheckDialogControls {
         ui::notice_builder()
             .parent(&self.window)
             .build(&mut self.check_notice)?;
+
+        self.layout.build(&self)?;
 
         Ok(())
     }

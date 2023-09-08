@@ -3,6 +3,8 @@ use super::*;
 
 #[derive(Default)]
 pub(super) struct AppWindowControls {
+    layout: AppWindowLayout,
+
     pub(super) font_normal: nwg::Font,
     pub(super) font_small: nwg::Font,
 
@@ -116,9 +118,9 @@ impl ui::Controls for AppWindowControls {
             .parent(&self.window)
             .build(&mut self.load_settings_notice)?;
 
+        self.layout.build(&self)?;
 
         Ok(())
-
     }
 
     fn window(&self) -> &nwg::Window {

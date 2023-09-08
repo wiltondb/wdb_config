@@ -10,7 +10,6 @@ mod result;
 
 use std::cell::RefCell;
 use std::fmt;
-use std::ops::Deref;
 use std::rc::Rc;
 use std::thread;
 use std::thread::JoinHandle;

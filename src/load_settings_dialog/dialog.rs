@@ -4,21 +4,19 @@ use super::*;
 #[derive(Default)]
 pub struct LoadSettingsDialog {
     pub(super) c: LoadSettingsDialogControls,
-    pub(super) layout: LoadSettingsDialogLayout,
-    pub(super) events: LoadSettingsDialogEvents,
 
-    loaded_settings: RefCell<LoadSettingsDialogResult>,
+    loaded_settings: LoadSettingsDialogResult,
     args: LoadSettingsDialogArgs,
     load_joiner: ui::PopupJoiner<LoadSettingsResult>,
 }
 
 impl LoadSettingsDialog {
-    pub fn on_load_complete(&self) {
+    pub fn on_load_complete(&mut self) {
         self.c.load_notice.receive();
         let res = self.load_joiner.await_result();
         self.stop_progress_bar(res.success);
         if res.success {
-            self.loaded_settings.replace(LoadSettingsDialogResult::new(res.records));
+            self.loaded_settings = LoadSettingsDialogResult::new(res.records);
             self.close();
             return;
         }
@@ -26,7 +24,7 @@ impl LoadSettingsDialog {
         self.c.details_box.set_text(&res.message);
     }
 
-    pub fn copy_to_clipboard(&self) {
+    pub fn copy_to_clipboard(&mut self) {
         let text = self.c.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
     }
@@ -48,13 +46,13 @@ impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadS
                 args,
                 ..Default::default()
             };
-            let dialog = Self::build_ui(data).expect("Failed to build UI");
+            let mut dialog = Self::build_ui(data).expect("Failed to build UI");
             nwg::dispatch_thread_events();
             dialog.result()
         })
     }
 
-    fn init(&self) {
+    fn init(&mut self) {
         let sender = self.c.load_notice.sender();
         let config = self.args.config.clone();
         let join_handle = thread::spawn(move || {
@@ -73,11 +71,11 @@ impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadS
         self.load_joiner.set_join_handle(join_handle);
     }
 
-    fn result(&self) -> LoadSettingsDialogResult {
-        self.loaded_settings.take()
+    fn result(&mut self) -> LoadSettingsDialogResult {
+        self.loaded_settings.clone()
     }
 
-    fn close(&self) {
+    fn close(&mut self) {
         self.args.notify_parent();
         self.c.hide_window();
         nwg::stop_thread_dispatch();

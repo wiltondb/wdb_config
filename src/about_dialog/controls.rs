@@ -3,6 +3,8 @@ use super::*;
 
 #[derive(Default)]
 pub(super) struct AboutDialogControls {
+    layout: AboutDialogLayout,
+
     pub(super) font_normal: nwg::Font,
 
     pub(super) window: nwg::Window,
@@ -37,6 +39,8 @@ impl ui::Controls for AboutDialogControls {
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.close_button)?;
+
+        self.layout.build(&self)?;
 
         Ok(())
     }

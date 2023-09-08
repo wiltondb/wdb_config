@@ -6,7 +6,7 @@ pub struct SettingRecord {
     pub description: String,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct LoadSettingsDialogResult {
     pub records: Vec<SettingRecord>
 }

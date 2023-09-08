@@ -4,15 +4,13 @@ use super::*;
 #[derive(Default)]
 pub struct ConnectCheckDialog {
     pub(super) c: ConnectCheckDialogControls,
-    pub(super) layout: ConnectCheckDialogLayout,
-    pub(super) events: ConnectCheckDialogEvents,
 
     args: ConnectCheckDialogArgs,
     check_joiner: ui::PopupJoiner<ConnectCheckResult>,
 }
 
 impl ConnectCheckDialog {
-    pub fn on_connection_check_complete(&self) {
+    pub fn on_connection_check_complete(&mut self) {
         self.c.check_notice.receive();
         let res = self.check_joiner.await_result();
         self.stop_progress_bar(res.success);
@@ -25,7 +23,7 @@ impl ConnectCheckDialog {
         self.c.details_box.set_text(&res.message);
     }
 
-    pub fn copy_to_clipboard(&self) {
+    pub fn copy_to_clipboard(&mut self) {
         let text = self.c.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
     }
@@ -47,13 +45,13 @@ impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for Conne
                 args,
                 ..Default::default()
             };
-            let dialog = Self::build_ui(data).expect("Failed to build UI");
+            let mut dialog = Self::build_ui(data).expect("Failed to build UI");
             nwg::dispatch_thread_events();
             dialog.result()
         })
     }
 
-    fn init(&self) {
+    fn init(&mut self) {
         let sender = self.c.check_notice.sender();
         let config = self.args.config.clone();
         let join_handle = thread::spawn(move || {
@@ -72,12 +70,12 @@ impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for Conne
         self.check_joiner.set_join_handle(join_handle);
     }
 
-    fn result(&self) -> ConnectCheckDialogResult {
+    fn result(&mut self) -> ConnectCheckDialogResult {
         // todo
         Default::default()
     }
 
-    fn close(&self) {
+    fn close(&mut self) {
         self.args.send_notice();
         self.c.hide_window();
         nwg::stop_thread_dispatch();

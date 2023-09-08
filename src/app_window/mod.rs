@@ -6,7 +6,6 @@ mod nui;
 mod window;
 
 use std::cell::RefCell;
-use std::ops::Deref;
 use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::process::Stdio;

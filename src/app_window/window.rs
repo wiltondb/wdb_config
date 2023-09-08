@@ -4,8 +4,6 @@ use super::*;
 #[derive(Default)]
 pub struct AppWindow {
     pub(super) c: AppWindowControls,
-    pub(super) layout: AppWindowLayout,
-    pub(super) events: AppWindowEvents,
 
     config: RefCell<ConnectConfig>,
 
@@ -20,7 +18,7 @@ impl AppWindow {
         Default::default()
     }
 
-    pub fn init(&self) {
+    pub fn init(&mut self) {
         let mut config = self.config.borrow_mut();
         config.hostname = String::from("localhost");
         config.port = 5432;
@@ -34,7 +32,7 @@ impl AppWindow {
         self.open_connect_dialog();
     }
 
-    pub fn close(&self) {
+    pub fn close(&mut self) {
         self.c.hide_window();
         nwg::stop_thread_dispatch();
     }
@@ -94,27 +92,27 @@ impl AppWindow {
          */
     }
 
-    pub fn open_about_dialog(&self) {
+    pub fn open_about_dialog(&mut self) {
         self.c.window.set_enabled(false);
         let args = AboutDialogArgs::new(&self.c.about_notice);
         let join_handle = AboutDialog::popup(args);
         self.about_dialog_joiner.set_join_handle(join_handle);
     }
 
-    pub fn await_about_dialog(&self) {
+    pub fn await_about_dialog(&mut self) {
         self.c.window.set_enabled(true);
         self.c.about_notice.receive();
         let _ = self.about_dialog_joiner.await_result();
     }
 
-    pub fn open_connect_dialog(&self) {
+    pub fn open_connect_dialog(&mut self) {
         self.c.window.set_enabled(false);
         let args = ConnectDialogArgs::new(&self.c.connect_notice, self.config.borrow().clone());
         let join_handle = ConnectDialog::popup(args);
         self.connect_dialog_joiner.set_join_handle(join_handle);
     }
 
-    pub fn await_connect_dialog(&self) {
+    pub fn await_connect_dialog(&mut self) {
         self.c.window.set_enabled(true);
         self.c.connect_notice.receive();
         let config = self.connect_dialog_joiner.await_result();
@@ -126,14 +124,14 @@ impl AppWindow {
         self.c.status_bar.set_text(0, &format!("  DB host: {}", text));
     }
 
-    pub fn open_load_dialog(&self) {
+    pub fn open_load_dialog(&mut self) {
         self.c.window.set_enabled(false);
         let args = LoadSettingsDialogArgs::new(&self.c.load_settings_notice, self.config.borrow().clone());
         let join_handle = LoadSettingsDialog::popup(args);
         self.load_settings_dialog_joiner.set_join_handle(join_handle);
     }
 
-    pub fn await_load_dialog(&self) {
+    pub fn await_load_dialog(&mut self) {
         self.c.window.set_enabled(true);
         self.c.load_settings_notice.receive();
         let res = self.load_settings_dialog_joiner.await_result();
@@ -141,7 +139,7 @@ impl AppWindow {
         self.set_status_bar_hostname(&res.records.len().to_string());
     }
 
-    pub fn open_website(&self) {
+    pub fn open_website(&mut self) {
         let create_no_window: u32 = 0x08000000;
         let _ = Command::new("cmd")
             .arg("/c")

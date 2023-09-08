@@ -31,7 +31,7 @@ impl ui::Events<LoadSettingsDialogControls> for LoadSettingsDialogEvents {
             .event(nwg::Event::OnNotice)
             .handler(LoadSettingsDialog::on_load_complete)
             .build(&mut self.events)?;
-        
+
         Ok(())
     }
 }

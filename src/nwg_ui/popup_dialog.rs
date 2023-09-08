@@ -6,9 +6,9 @@ use super::*;
 pub trait PopupDialog<A: PopupArgs, R> {
     fn popup(args: A) -> JoinHandle<R>;
 
-    fn init(&self);
+    fn init(&mut self);
 
-    fn result(&self) -> R;
+    fn result(&mut self) -> R;
 
-    fn close(&self);
+    fn close(&mut self);
 }

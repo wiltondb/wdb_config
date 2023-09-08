@@ -4,15 +4,13 @@ use super::*;
 #[derive(Default)]
 pub struct ConnectDialog {
     pub(super) c: ConnectDialogControls,
-    pub(super) layout: ConnectDialogLayout,
-    pub(super) events: ConnectDialogEvents,
 
     args: ConnectDialogArgs,
     check_joiner: ui::PopupJoiner<ConnectCheckDialogResult>,
 }
 
 impl ConnectDialog {
-    pub fn open_check_dialog(&self) {
+    pub fn open_check_dialog(&mut self) {
         self.c.window.set_enabled(false);
         let config = self.config_from_input();
         let args = ConnectCheckDialogArgs::new(&self.c.check_notice, config);
@@ -20,18 +18,18 @@ impl ConnectDialog {
         self.check_joiner.set_join_handle(join_handle);
     }
 
-    pub fn await_check_dialog(&self) {
+    pub fn await_check_dialog(&mut self) {
         self.c.window.set_enabled(true);
         self.c.check_notice.receive();
         let _ = self.check_joiner.await_result();
         self.c.shake_window();
     }
 
-    pub fn on_port_input_changed(&self) {
+    pub fn on_port_input_changed(&mut self) {
         self.correct_port_value();
     }
 
-    pub fn on_enable_tls_checkbox_changed(&self) {
+    pub fn on_enable_tls_checkbox_changed(&mut self) {
         self.sync_tls_checkboxes_state();
     }
 
@@ -101,21 +99,22 @@ impl ui::PopupDialog<ConnectDialogArgs, ConnectConfig> for ConnectDialog {
                 args,
                 ..Default::default()
             };
-            let dialog = Self::build_ui(data).expect("Failed to build UI");
+            let mut dialog = Self::build_ui(data).expect("Failed to build UI");
             nwg::dispatch_thread_events();
             dialog.result()
         })
     }
 
-    fn init(&self) {
+    fn init(&mut self) {
         self.config_to_input(&self.args.config);
+        self.c.shake_window();
     }
 
-    fn result(&self) -> ConnectConfig {
+    fn result(&mut self) -> ConnectConfig {
         self.config_from_input()
     }
 
-    fn close(&self) {
+    fn close(&mut self) {
         self.args.notify_parent();
         self.c.hide_window();
         nwg::stop_thread_dispatch();
