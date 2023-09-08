@@ -7,13 +7,13 @@ pub struct LoadSettingsDialog {
 
     loaded_settings: LoadSettingsDialogResult,
     args: LoadSettingsDialogArgs,
-    load_joiner: ui::PopupJoiner<LoadSettingsResult>,
+    load_join_handle: ui::PopupJoinHandle<LoadSettingsResult>,
 }
 
 impl LoadSettingsDialog {
     pub fn on_load_complete(&mut self) {
         self.c.load_notice.receive();
-        let res = self.load_joiner.await_result();
+        let res = self.load_join_handle.join();
         self.stop_progress_bar(res.success);
         if res.success {
             self.loaded_settings = LoadSettingsDialogResult::new(res.records);
@@ -40,8 +40,8 @@ impl LoadSettingsDialog {
 }
 
 impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadSettingsDialog {
-    fn popup(args: LoadSettingsDialogArgs) -> JoinHandle<LoadSettingsDialogResult> {
-        thread::spawn(move || {
+    fn popup(args: LoadSettingsDialogArgs) -> ui::PopupJoinHandle<LoadSettingsDialogResult> {
+        let join_handle = thread::spawn(move || {
             let data = Self {
                 args,
                 ..Default::default()
@@ -49,7 +49,8 @@ impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadS
             let mut dialog = Self::build_ui(data).expect("Failed to build UI");
             nwg::dispatch_thread_events();
             dialog.result()
-        })
+        });
+        ui::PopupJoinHandle::from(join_handle)
     }
 
     fn init(&mut self) {
@@ -68,7 +69,7 @@ impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadS
             sender.send();
             res
         });
-        self.load_joiner.set_join_handle(join_handle);
+        self.load_join_handle = ui::PopupJoinHandle::from(join_handle);
     }
 
     fn result(&mut self) -> LoadSettingsDialogResult {

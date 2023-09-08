@@ -6,7 +6,7 @@ mod layout;
 mod margin_builder;
 mod popup_args;
 mod popup_dialog;
-mod popup_joiner;
+mod popup_join_handle;
 mod size_builder;
 mod sync_notice;
 
@@ -20,7 +20,7 @@ pub use events::Events;
 pub use layout::Layout;
 pub use popup_args::PopupArgs;
 pub use popup_dialog::PopupDialog;
-pub use popup_joiner::PopupJoiner;
+pub use popup_join_handle::PopupJoinHandle;
 pub use sync_notice::SyncNotice;
 pub use sync_notice::SyncNoticeSender;
 

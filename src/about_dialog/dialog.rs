@@ -12,8 +12,8 @@ impl AboutDialog {
 }
 
 impl ui::PopupDialog<AboutDialogArgs, ()> for AboutDialog {
-    fn popup(args: AboutDialogArgs) -> JoinHandle<()> {
-        thread::spawn(move || {
+    fn popup(args: AboutDialogArgs) -> ui::PopupJoinHandle<()> {
+        let join_handle = thread::spawn(move || {
             let data = Self {
                 args,
                 ..Default::default()
@@ -21,7 +21,8 @@ impl ui::PopupDialog<AboutDialogArgs, ()> for AboutDialog {
             let mut dialog = Self::build_ui(data).expect("Failed to build UI");
             nwg::dispatch_thread_events();
             dialog.result()
-        })
+        });
+        ui::PopupJoinHandle::from(join_handle)
     }
 
     fn init(&mut self) {

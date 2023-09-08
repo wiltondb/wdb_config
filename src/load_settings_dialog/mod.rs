@@ -12,7 +12,6 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 use std::thread;
-use std::thread::JoinHandle;
 use std::time::Duration;
 use std::time::Instant;
 

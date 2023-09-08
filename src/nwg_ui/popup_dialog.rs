@@ -1,10 +1,8 @@
 
-use std::thread::JoinHandle;
-
 use super::*;
 
 pub trait PopupDialog<A: PopupArgs, R> {
-    fn popup(args: A) -> JoinHandle<R>;
+    fn popup(args: A) -> PopupJoinHandle<R>;
 
     fn init(&mut self);
 

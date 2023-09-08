@@ -6,7 +6,7 @@ pub struct ConnectDialog {
     pub(super) c: ConnectDialogControls,
 
     args: ConnectDialogArgs,
-    check_joiner: ui::PopupJoiner<ConnectCheckDialogResult>,
+    check_joiner: ui::PopupJoinHandle<ConnectCheckDialogResult>,
 }
 
 impl ConnectDialog {
@@ -14,14 +14,13 @@ impl ConnectDialog {
         self.c.window.set_enabled(false);
         let config = self.config_from_input();
         let args = ConnectCheckDialogArgs::new(&self.c.check_notice, config);
-        let join_handle = ConnectCheckDialog::popup(args);
-        self.check_joiner.set_join_handle(join_handle);
+        self.check_joiner = ConnectCheckDialog::popup(args);
     }
 
     pub fn await_check_dialog(&mut self) {
         self.c.window.set_enabled(true);
         self.c.check_notice.receive();
-        let _ = self.check_joiner.await_result();
+        let _ = self.check_joiner.join();
         self.c.shake_window();
     }
 
@@ -93,8 +92,8 @@ impl ConnectDialog {
 }
 
 impl ui::PopupDialog<ConnectDialogArgs, ConnectConfig> for ConnectDialog {
-    fn popup(args: ConnectDialogArgs) -> JoinHandle<ConnectConfig> {
-        thread::spawn(move || {
+    fn popup(args: ConnectDialogArgs) -> ui::PopupJoinHandle<ConnectConfig> {
+        let join_handle = thread::spawn(move || {
             let data = Self {
                 args,
                 ..Default::default()
@@ -102,7 +101,8 @@ impl ui::PopupDialog<ConnectDialogArgs, ConnectConfig> for ConnectDialog {
             let mut dialog = Self::build_ui(data).expect("Failed to build UI");
             nwg::dispatch_thread_events();
             dialog.result()
-        })
+        });
+        ui::PopupJoinHandle::from(join_handle)
     }
 
     fn init(&mut self) {

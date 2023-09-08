@@ -10,7 +10,6 @@ mod nui;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::thread;
-use std::thread::JoinHandle;
 
 use nwg::NativeUi;
 

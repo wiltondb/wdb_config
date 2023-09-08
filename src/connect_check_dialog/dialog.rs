@@ -6,13 +6,13 @@ pub struct ConnectCheckDialog {
     pub(super) c: ConnectCheckDialogControls,
 
     args: ConnectCheckDialogArgs,
-    check_joiner: ui::PopupJoiner<ConnectCheckResult>,
+    check_join_handle: ui::PopupJoinHandle<ConnectCheckResult>,
 }
 
 impl ConnectCheckDialog {
     pub fn on_connection_check_complete(&mut self) {
         self.c.check_notice.receive();
-        let res = self.check_joiner.await_result();
+        let res = self.check_join_handle.join();
         self.stop_progress_bar(res.success);
         let label = if res.success {
             "Connection successful"
@@ -39,8 +39,8 @@ impl ConnectCheckDialog {
 }
 
 impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for ConnectCheckDialog {
-    fn popup(args: ConnectCheckDialogArgs) -> JoinHandle<ConnectCheckDialogResult> {
-        thread::spawn(move || {
+    fn popup(args: ConnectCheckDialogArgs) -> ui::PopupJoinHandle<ConnectCheckDialogResult> {
+        let join_handle = thread::spawn(move || {
             let data = Self {
                 args,
                 ..Default::default()
@@ -48,7 +48,8 @@ impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for Conne
             let mut dialog = Self::build_ui(data).expect("Failed to build UI");
             nwg::dispatch_thread_events();
             dialog.result()
-        })
+        });
+        ui::PopupJoinHandle::from(join_handle)
     }
 
     fn init(&mut self) {
@@ -67,7 +68,7 @@ impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for Conne
             sender.send();
             res
         });
-        self.check_joiner.set_join_handle(join_handle);
+        self.check_join_handle = ui::PopupJoinHandle::from(join_handle);
     }
 
     fn result(&mut self) -> ConnectCheckDialogResult {

@@ -7,9 +7,9 @@ pub struct AppWindow {
 
     config: RefCell<ConnectConfig>,
 
-    about_dialog_joiner: ui::PopupJoiner<()>,
-    connect_dialog_joiner: ui::PopupJoiner<ConnectConfig>,
-    load_settings_dialog_joiner: ui::PopupJoiner<LoadSettingsDialogResult>,
+    about_dialog_join_handle: ui::PopupJoinHandle<()>,
+    connect_dialog_join_handle: ui::PopupJoinHandle<ConnectConfig>,
+    load_settings_dialog_join_handle: ui::PopupJoinHandle<LoadSettingsDialogResult>,
 }
 
 impl AppWindow {
@@ -95,27 +95,25 @@ impl AppWindow {
     pub fn open_about_dialog(&mut self) {
         self.c.window.set_enabled(false);
         let args = AboutDialogArgs::new(&self.c.about_notice);
-        let join_handle = AboutDialog::popup(args);
-        self.about_dialog_joiner.set_join_handle(join_handle);
+        self.about_dialog_join_handle = AboutDialog::popup(args);
     }
 
     pub fn await_about_dialog(&mut self) {
         self.c.window.set_enabled(true);
         self.c.about_notice.receive();
-        let _ = self.about_dialog_joiner.await_result();
+        let _ = self.about_dialog_join_handle.join();
     }
 
     pub fn open_connect_dialog(&mut self) {
         self.c.window.set_enabled(false);
         let args = ConnectDialogArgs::new(&self.c.connect_notice, self.config.borrow().clone());
-        let join_handle = ConnectDialog::popup(args);
-        self.connect_dialog_joiner.set_join_handle(join_handle);
+        self.connect_dialog_join_handle = ConnectDialog::popup(args);
     }
 
     pub fn await_connect_dialog(&mut self) {
         self.c.window.set_enabled(true);
         self.c.connect_notice.receive();
-        let config = self.connect_dialog_joiner.await_result();
+        let config = self.connect_dialog_join_handle.join();
         self.config.replace(config);
         self.set_status_bar_hostname(&self.config.borrow().hostname);
     }
@@ -127,14 +125,13 @@ impl AppWindow {
     pub fn open_load_dialog(&mut self) {
         self.c.window.set_enabled(false);
         let args = LoadSettingsDialogArgs::new(&self.c.load_settings_notice, self.config.borrow().clone());
-        let join_handle = LoadSettingsDialog::popup(args);
-        self.load_settings_dialog_joiner.set_join_handle(join_handle);
+        self.load_settings_dialog_join_handle = LoadSettingsDialog::popup(args);
     }
 
     pub fn await_load_dialog(&mut self) {
         self.c.window.set_enabled(true);
         self.c.load_settings_notice.receive();
-        let res = self.load_settings_dialog_joiner.await_result();
+        let res = self.load_settings_dialog_join_handle.join();
         // todo
         self.set_status_bar_hostname(&res.records.len().to_string());
     }
