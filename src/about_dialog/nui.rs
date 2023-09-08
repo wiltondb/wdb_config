@@ -11,6 +11,7 @@ impl nwg::NativeUi<AboutDialogNui> for AboutDialog {
         dialog.c.build()?;
         dialog.layout.build(&dialog.c)?;
         dialog.events.build(&dialog.c)?;
+        dialog.init();
         dialog.c.shake_window();
 
         let wrapper = AboutDialogNui {

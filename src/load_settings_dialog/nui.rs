@@ -1,7 +1,7 @@
 
 use super::*;
 
-pub struct LoadSettingsDialogNui {
+pub(super) struct LoadSettingsDialogNui {
     pub inner: Rc<LoadSettingsDialog>,
     default_handler: RefCell<Option<nwg::EventHandler>>
 }
@@ -11,6 +11,7 @@ impl nwg::NativeUi<LoadSettingsDialogNui> for LoadSettingsDialog {
         dialog.c.build()?;
         dialog.layout.build(&dialog.c)?;
         dialog.events.build(&dialog.c)?;
+        dialog.init();
         dialog.c.shake_window();
 
         let wrapper = LoadSettingsDialogNui {

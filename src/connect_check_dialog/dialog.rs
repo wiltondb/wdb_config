@@ -12,24 +12,6 @@ pub struct ConnectCheckDialog {
 }
 
 impl ConnectCheckDialog {
-    pub fn spawn_connection_check(&self) -> JoinHandle<ConnectCheckResult> {
-        let sender = self.c.check_notice.sender();
-        let config = self.args.config.clone();
-        thread::spawn(move || {
-            let start = Instant::now();
-            let res = match check_postgres_conn(&config) {
-                Ok(version) => ConnectCheckResult::success(version),
-                Err(e) => ConnectCheckResult::failure(format!("{}", e))
-            };
-            let remaining = 1000 - start.elapsed().as_millis() as i64;
-            if remaining > 0 {
-                thread::sleep(Duration::from_millis(remaining as u64));
-            }
-            sender.send();
-            res
-        })
-    }
-
     pub fn on_connection_check_complete(&self) {
         self.c.check_notice.receive();
         let res = self.check_joiner.await_result();
@@ -46,10 +28,6 @@ impl ConnectCheckDialog {
     pub fn copy_to_clipboard(&self) {
         let text = self.c.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
-    }
-
-    pub fn set_check_join_handle(&self, join_handle: JoinHandle<ConnectCheckResult>) {
-        self.check_joiner.set_join_handle(join_handle);
     }
 
     pub fn stop_progress_bar(&self, success: bool) {
@@ -70,11 +48,28 @@ impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for Conne
                 ..Default::default()
             };
             let dialog = Self::build_ui(data).expect("Failed to build UI");
-            let join_handle = dialog.inner.spawn_connection_check();
-            dialog.inner.set_check_join_handle(join_handle);
             nwg::dispatch_thread_events();
             dialog.result()
         })
+    }
+
+    fn init(&self) {
+        let sender = self.c.check_notice.sender();
+        let config = self.args.config.clone();
+        let join_handle = thread::spawn(move || {
+            let start = Instant::now();
+            let res = match check_postgres_conn(&config) {
+                Ok(version) => ConnectCheckResult::success(version),
+                Err(e) => ConnectCheckResult::failure(format!("{}", e))
+            };
+            let remaining = 1000 - start.elapsed().as_millis() as i64;
+            if remaining > 0 {
+                thread::sleep(Duration::from_millis(remaining as u64));
+            }
+            sender.send();
+            res
+        });
+        self.check_joiner.set_join_handle(join_handle);
     }
 
     fn result(&self) -> ConnectCheckDialogResult {

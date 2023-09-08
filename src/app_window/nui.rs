@@ -6,17 +6,12 @@ pub struct AppWindowNui {
     default_handler: RefCell<Option<nwg::EventHandler>>
 }
 
-impl AppWindowNui {
-    pub fn open_connect_dialog(&self) {
-        self.inner.open_connect_dialog();
-    }
-}
-
 impl nwg::NativeUi<AppWindowNui> for AppWindow {
     fn build_ui(mut dialog: AppWindow) -> Result<AppWindowNui, nwg::NwgError> {
         dialog.c.build()?;
         dialog.layout.build(&dialog.c)?;
         dialog.events.build(&dialog.c)?;
+        dialog.init();
         dialog.c.shake_window();
 
         let wrapper = AppWindowNui {

@@ -26,6 +26,10 @@ impl ui::PopupDialog<AboutDialogArgs, ()> for AboutDialog {
         })
     }
 
+    fn init(&self) {
+        ()
+    }
+
     fn result(&self) -> () {
         ()
     }

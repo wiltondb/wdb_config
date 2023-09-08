@@ -35,7 +35,6 @@ impl ConnectDialog {
         self.sync_tls_checkboxes_state();
     }
 
-
     pub fn correct_port_value(&self) {
         let text = self.c.port_input.text();
         if text.len() == 0 {
@@ -70,6 +69,25 @@ impl ConnectDialog {
         }
     }
 
+    pub fn config_to_input(&self, config: &ConnectConfig) {
+        self.c.hostname_input.set_text(&config.hostname);
+        self.c.port_input.set_text(&config.port.to_string());
+        self.c.username_input.set_text(&config.username);
+        self.c.password_input.set_text(&config.password);
+        let tls_state = if config.enable_tls {
+            nwg::CheckBoxState::Checked
+        } else {
+            nwg::CheckBoxState::Unchecked
+        };
+        self.c.enable_tls_checkbox.set_check_state(tls_state);
+        let accept_state = if config.accept_invalid_tls {
+            nwg::CheckBoxState::Checked
+        } else {
+            nwg::CheckBoxState::Unchecked
+        };
+        self.c.accept_invalid_tls_checkbox.set_check_state(accept_state);
+    }
+
     pub fn sync_tls_checkboxes_state(&self) {
         let enabled = self.c.enable_tls_checkbox.check_state() == nwg::CheckBoxState::Checked;
         self.c.accept_invalid_tls_checkbox.set_enabled(enabled);
@@ -89,13 +107,17 @@ impl ui::PopupDialog<ConnectDialogArgs, ConnectConfig> for ConnectDialog {
         })
     }
 
-    fn close(&self) {
-        self.args.notify_parent();
-        self.c.hide_window();
-        nwg::stop_thread_dispatch();
+    fn init(&self) {
+        self.config_to_input(&self.args.config);
     }
 
     fn result(&self) -> ConnectConfig {
         self.config_from_input()
+    }
+
+    fn close(&self) {
+        self.args.notify_parent();
+        self.c.hide_window();
+        nwg::stop_thread_dispatch();
     }
 }

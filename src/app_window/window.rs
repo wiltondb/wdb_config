@@ -20,6 +20,25 @@ impl AppWindow {
         Default::default()
     }
 
+    pub fn init(&self) {
+        let mut config = self.config.borrow_mut();
+        config.hostname = String::from("localhost");
+        config.port = 5432;
+        config.username = String::from("wilton");
+        // todo: removeme
+        config.password = String::from("wilton");
+        config.enable_tls = true;
+        config.accept_invalid_tls = true;
+        drop(config);
+
+        self.open_connect_dialog();
+    }
+
+    pub fn close(&self) {
+        self.c.hide_window();
+        nwg::stop_thread_dispatch();
+    }
+
     #[allow(dead_code)]
     pub fn load_data(&self) {
         /*
@@ -135,9 +154,5 @@ impl AppWindow {
             .status();
     }
 
-    pub fn close(&self) {
-        self.c.hide_window();
-        nwg::stop_thread_dispatch();
-    }
 
 }

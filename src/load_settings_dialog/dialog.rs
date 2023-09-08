@@ -13,24 +13,6 @@ pub struct LoadSettingsDialog {
 }
 
 impl LoadSettingsDialog {
-    pub fn spawn_load(&self) -> JoinHandle<LoadSettingsResult> {
-        let sender = self.c.load_notice.sender();
-        let config = self.args.config.clone();
-        thread::spawn(move || {
-            let start = Instant::now();
-            let res = match load_settings_from_db(&config) {
-                Ok(records) => LoadSettingsResult::success(records),
-                Err(e) => LoadSettingsResult::failure(format!("{}", e))
-            };
-            let remaining = 1000 - start.elapsed().as_millis() as i64;
-            if remaining > 0 {
-                thread::sleep(Duration::from_millis(remaining as u64));
-            }
-            sender.send();
-            res
-        })
-    }
-
     pub fn on_load_complete(&self) {
         self.c.load_notice.receive();
         let res = self.load_joiner.await_result();
@@ -47,10 +29,6 @@ impl LoadSettingsDialog {
     pub fn copy_to_clipboard(&self) {
         let text = self.c.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
-    }
-
-    pub fn set_load_join_handle(&self, join_handle: JoinHandle<LoadSettingsResult>) {
-        self.load_joiner.set_join_handle(join_handle);
     }
 
     pub fn stop_progress_bar(&self, success: bool) {
@@ -71,11 +49,32 @@ impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadS
                 ..Default::default()
             };
             let dialog = Self::build_ui(data).expect("Failed to build UI");
-            let join_handle = dialog.inner.spawn_load();
-            dialog.inner.set_load_join_handle(join_handle);
             nwg::dispatch_thread_events();
             dialog.result()
         })
+    }
+
+    fn init(&self) {
+        let sender = self.c.load_notice.sender();
+        let config = self.args.config.clone();
+        let join_handle = thread::spawn(move || {
+            let start = Instant::now();
+            let res = match load_settings_from_db(&config) {
+                Ok(records) => LoadSettingsResult::success(records),
+                Err(e) => LoadSettingsResult::failure(format!("{}", e))
+            };
+            let remaining = 1000 - start.elapsed().as_millis() as i64;
+            if remaining > 0 {
+                thread::sleep(Duration::from_millis(remaining as u64));
+            }
+            sender.send();
+            res
+        });
+        self.load_joiner.set_join_handle(join_handle);
+    }
+
+    fn result(&self) -> LoadSettingsDialogResult {
+        self.loaded_settings.take()
     }
 
     fn close(&self) {
@@ -83,14 +82,10 @@ impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadS
         self.c.hide_window();
         nwg::stop_thread_dispatch();
     }
-
-    fn result(&self) -> LoadSettingsDialogResult {
-        self.loaded_settings.take()
-    }
 }
 
 #[derive(Default)]
-pub struct LoadSettingsResult {
+struct LoadSettingsResult {
     success: bool,
     message: String,
     records: Vec<SettingRecord>,

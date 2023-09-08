@@ -1,7 +1,7 @@
 
 use super::*;
 
-pub struct ConnectDialogNui {
+pub(super) struct ConnectDialogNui {
     inner: Rc<ConnectDialog>,
     default_handler: RefCell<Option<nwg::EventHandler>>
 }
@@ -11,6 +11,7 @@ impl nwg::NativeUi<ConnectDialogNui> for ConnectDialog {
         dialog.c.build()?;
         dialog.layout.build(&dialog.c)?;
         dialog.events.build(&dialog.c)?;
+        dialog.init();
         dialog.c.shake_window();
 
         let wrapper = ConnectDialogNui {

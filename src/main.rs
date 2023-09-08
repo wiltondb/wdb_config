@@ -14,8 +14,7 @@ fn main() {
     nwg::Font::set_global_family("Segoe UI").expect("Failed to set default font");
 
     let data = app_window::AppWindow::new();
-    let app = app_window::AppWindow::build_ui(data).expect("Failed to build UI");
-    app.open_connect_dialog();
+    let _app = app_window::AppWindow::build_ui(data).expect("Failed to build UI");
 
     nwg::dispatch_thread_events();
 }
