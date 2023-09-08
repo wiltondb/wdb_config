@@ -1,10 +1,5 @@
 
-use crate::*;
-use nwg_ui as ui;
-use ui::PopupDialog;
 use super::*;
-use crate::connect_check_dialog::controls::ConnectCheckDialogControls;
-use nwg::NwgError;
 
 #[derive(Default)]
 pub(super) struct ConnectCheckDialogEvents {
@@ -12,7 +7,7 @@ pub(super) struct ConnectCheckDialogEvents {
 }
 
 impl ui::Events<ConnectCheckDialogControls> for ConnectCheckDialogEvents {
-    fn build(&mut self, c: &ConnectCheckDialogControls) -> Result<(), NwgError> {
+    fn build(&mut self, c: &ConnectCheckDialogControls) -> Result<(), nwg::NwgError> {
         ui::event_builder()
             .control(&c.window)
             .event(nwg::Event::OnWindowClose)

@@ -1,5 +1,4 @@
 
-
 pub struct ConnectCheckDialogResult {
     pub value: Result<String, postgres::Error>
 }
@@ -11,4 +10,3 @@ impl Default for ConnectCheckDialogResult {
         }
     }
 }
-

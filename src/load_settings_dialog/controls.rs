@@ -1,6 +1,5 @@
 
-use crate::*;
-use nwg_ui as ui;
+use super::*;
 
 #[derive(Default)]
 pub(super) struct LoadSettingsDialogControls {

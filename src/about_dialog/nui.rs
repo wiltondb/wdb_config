@@ -1,13 +1,4 @@
 
-use std::rc::Rc;
-use std::cell::RefCell;
-use std::ops::Deref;
-
-use crate::*;
-use nwg_ui as ui;
-use ui::Controls;
-use ui::Events;
-use ui::Layout;
 use super::*;
 
 pub(super) struct AboutDialogNui {
@@ -17,10 +8,10 @@ pub(super) struct AboutDialogNui {
 
 impl nwg::NativeUi<AboutDialogNui> for AboutDialog {
     fn build_ui(mut dialog: AboutDialog) -> Result<AboutDialogNui, nwg::NwgError> {
-        dialog.controls.build()?;
-        dialog.layout.build(&dialog.controls)?;
-        dialog.events.build(&dialog.controls)?;
-        dialog.controls.shake_window();
+        dialog.c.build()?;
+        dialog.layout.build(&dialog.c)?;
+        dialog.events.build(&dialog.c)?;
+        dialog.c.shake_window();
 
         let wrapper = AboutDialogNui {
             inner:  Rc::new(dialog),
@@ -39,7 +30,7 @@ impl nwg::NativeUi<AboutDialogNui> for AboutDialog {
             }
         };
 
-        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.controls.window.handle, handle_events));
+        *wrapper.default_handler.borrow_mut() = Some(nwg::full_bind_event_handler(&wrapper.c.window.handle, handle_events));
 
         return Ok(wrapper);
     }

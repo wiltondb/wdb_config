@@ -1,5 +1,4 @@
 
-
 #[derive(Default, Debug, Clone)]
 pub struct SettingRecord {
     pub name: String,

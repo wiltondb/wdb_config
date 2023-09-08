@@ -1,10 +1,5 @@
 
-use std::cell::RefCell;
-
-use crate::*;
-use nwg_ui as ui;
-
-use connect_dialog::ConnectConfig;
+use super::*;
 
 #[derive(Default)]
 pub struct ConnectCheckDialogArgs {
