@@ -1,5 +1,5 @@
 
-use super::*;
+use std::fmt;
 
 #[derive(Debug)]
 pub(super) struct ConnectCheckDialogError {

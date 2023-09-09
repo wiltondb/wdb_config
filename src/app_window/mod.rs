@@ -5,12 +5,6 @@ mod layout;
 mod nui;
 mod window;
 
-use std::cell::RefCell;
-use std::os::windows::process::CommandExt;
-use std::process::Command;
-use std::process::Stdio;
-use std::rc::Rc;
-
 use crate::*;
 use nwg_ui as ui;
 use ui::Controls;

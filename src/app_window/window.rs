@@ -1,11 +1,15 @@
 
+use std::os::windows::process::CommandExt;
+use std::process::Command;
+use std::process::Stdio;
+
 use super::*;
 
 #[derive(Default)]
 pub struct AppWindow {
     pub(super) c: AppWindowControls,
 
-    config: RefCell<ConnectConfig>,
+    config: ConnectConfig,
 
     about_dialog_join_handle: ui::PopupJoinHandle<()>,
     connect_dialog_join_handle: ui::PopupJoinHandle<ConnectConfig>,
@@ -19,15 +23,13 @@ impl AppWindow {
     }
 
     pub fn init(&mut self) {
-        let mut config = self.config.borrow_mut();
-        config.hostname = String::from("localhost");
-        config.port = 5432;
-        config.username = String::from("wilton");
+        self.config.hostname = String::from("localhost");
+        self.config.port = 5432;
+        self.config.username = String::from("wilton");
         // todo: removeme
-        config.password = String::from("wilton");
-        config.enable_tls = true;
-        config.accept_invalid_tls = true;
-        drop(config);
+        self.config.password = String::from("wilton");
+        self.config.enable_tls = true;
+        self.config.accept_invalid_tls = true;
 
         self.open_connect_dialog();
     }
@@ -106,16 +108,15 @@ impl AppWindow {
 
     pub fn open_connect_dialog(&mut self) {
         self.c.window.set_enabled(false);
-        let args = ConnectDialogArgs::new(&self.c.connect_notice, self.config.borrow().clone());
+        let args = ConnectDialogArgs::new(&self.c.connect_notice, self.config.clone());
         self.connect_dialog_join_handle = ConnectDialog::popup(args);
     }
 
     pub fn await_connect_dialog(&mut self) {
         self.c.window.set_enabled(true);
         self.c.connect_notice.receive();
-        let config = self.connect_dialog_join_handle.join();
-        self.config.replace(config);
-        self.set_status_bar_hostname(&self.config.borrow().hostname);
+        self.config = self.connect_dialog_join_handle.join();
+        self.set_status_bar_hostname(&self.config.hostname);
     }
 
     pub fn set_status_bar_hostname(&self, text: &str) {
@@ -124,7 +125,7 @@ impl AppWindow {
 
     pub fn open_load_dialog(&mut self) {
         self.c.window.set_enabled(false);
-        let args = LoadSettingsDialogArgs::new(&self.c.load_settings_notice, self.config.borrow().clone());
+        let args = LoadSettingsDialogArgs::new(&self.c.load_settings_notice, self.config.clone());
         self.load_settings_dialog_join_handle = LoadSettingsDialog::popup(args);
     }
 
