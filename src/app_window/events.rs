@@ -37,6 +37,12 @@ impl ui::Events<AppWindowControls> for AppWindowEvents {
             .build(&mut self.events)?;
 
         ui::event_builder()
+            .control(&c.filter_combo)
+            .event(nwg::Event::OnComboxBoxSelection)
+            .handler(AppWindow::on_filter_combo)
+            .build(&mut self.events)?;
+
+        ui::event_builder()
             .control(&c.filter_button)
             .event(nwg::Event::OnButtonClick)
             .handler(AppWindow::on_filter_button)
@@ -46,6 +52,11 @@ impl ui::Events<AppWindowControls> for AppWindowEvents {
             .control(&c.settings_view)
             .event(nwg::Event::OnListViewColumnClick)
             .handler(AppWindow::on_settings_view_sort)
+            .build(&mut self.events)?;
+        ui::event_builder()
+            .control(&c.settings_view)
+            .event(nwg::Event::OnListViewDoubleClick)
+            .handler(AppWindow::on_settings_view_dblckick)
             .build(&mut self.events)?;
 
         ui::event_builder()

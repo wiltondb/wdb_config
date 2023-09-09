@@ -14,6 +14,11 @@ pub struct AppWindow {
     config: ConnectConfig,
     settings: Vec<SettingRecord>,
 
+    networking_settings: HashSet<String>,
+    logging_settings: HashSet<String>,
+    memory_settings: HashSet<String>,
+    escape_hatch_settings: HashSet<String>,
+
     about_dialog_join_handle: ui::PopupJoinHandle<()>,
     connect_dialog_join_handle: ui::PopupJoinHandle<ConnectConfig>,
     load_settings_dialog_join_handle: ui::PopupJoinHandle<LoadSettingsDialogResult>,
@@ -33,6 +38,11 @@ impl AppWindow {
         self.config.password = String::from("wilton");
         self.config.enable_tls = true;
         self.config.accept_invalid_tls = true;
+
+        self.networking_settings = setting_groups::networking();
+        self.logging_settings = setting_groups::logging();
+        self.memory_settings = setting_groups::memory();
+        self.escape_hatch_settings = setting_groups::escape_hatches();
 
         self.open_connect_dialog(nwg::EventData::NoData);
     }
@@ -132,7 +142,39 @@ impl AppWindow {
         self.reload_settings_view()
     }
 
+    pub(super) fn on_filter_combo(&mut self, _: nwg::EventData) {
+        self.reload_settings_view()
+    }
+
+    pub(super) fn on_settings_view_dblckick(&mut self, ed: nwg::EventData) {
+        ui::message_box_debug(format!("{:?}", ed));
+    }
+
     fn setting_matches_filters(&self, name: &str) -> bool {
+        let filter_group_names = self.c.filter_combo.collection();
+        let filter_group_idx = match self.c.filter_combo.selection() {
+            Some(idx) => idx,
+            None => 0
+        };
+        if filter_group_idx > 0 {
+            let group_name = &filter_group_names[filter_group_idx];
+            let empty = HashSet::<String>::new();
+            let group = if setting_groups::NETWORKING == group_name {
+                &self.networking_settings
+            } else if setting_groups::LOGGING == group_name {
+                &self.logging_settings
+            } else if setting_groups::MEMORY == group_name {
+                &self.memory_settings
+            } else if setting_groups::ESCAPE_HATCHES == group_name {
+                &self.escape_hatch_settings
+            } else {
+                &empty
+            };
+            if !group.contains(name) {
+                return false;
+            }
+        }
+
         let filter = self.c.filter_input.text();
         if 0 == filter.len() {
             return true;

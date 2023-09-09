@@ -3,7 +3,10 @@ mod controls;
 mod events;
 mod layout;
 mod nui;
+mod setting_groups;
 mod window;
+
+use std::collections::HashSet;
 
 use crate::*;
 use nwg_ui as ui;
