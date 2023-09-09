@@ -37,6 +37,12 @@ impl ui::Events<AppWindowControls> for AppWindowEvents {
             .build(&mut self.events)?;
 
         ui::event_builder()
+            .control(&c.filter_button)
+            .event(nwg::Event::OnButtonClick)
+            .handler(AppWindow::on_filter_button)
+            .build(&mut self.events)?;
+
+        ui::event_builder()
             .control(&c.settings_view)
             .event(nwg::Event::OnListViewColumnClick)
             .handler(AppWindow::on_settings_view_sort)

@@ -20,7 +20,7 @@ impl SizeBuilder {
         self
     }
 
-    pub fn width_points(mut self, width: u32) -> Self {
+    pub fn width_pt(mut self, width: u32) -> Self {
         self.width = Dimension::Points(width as f32);
         self
     }

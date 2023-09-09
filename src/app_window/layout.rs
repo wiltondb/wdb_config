@@ -4,7 +4,8 @@ use super::*;
 #[derive(Default)]
 pub(super) struct AppWindowLayout {
     root_layout: nwg::FlexboxLayout,
-    main_view_layout: nwg::FlexboxLayout,
+    filter_panel_layout: nwg::FlexboxLayout,
+    settings_view_layout: nwg::FlexboxLayout,
     buttons_layout: nwg::FlexboxLayout,
 }
 
@@ -13,10 +14,42 @@ impl ui::Layout<AppWindowControls> for AppWindowLayout {
         nwg::FlexboxLayout::builder()
             .parent(&c.window)
             .flex_direction(ui::FlexDirection::Row)
+            .child(&c.filter_combo)
+            .child_size(ui::size_builder()
+                .width_pt(100)
+                .height_input_form_row()
+                .build())
+            .child_margin(ui::margin_builder()
+                .top_pt(2)
+                .build())
+            .child(&c.filter_input)
+            .child_size(ui::size_builder()
+                .width_auto()
+                .height_input_form_row()
+                .build())
+            .child_margin(ui::margin_builder()
+                .start_default()
+                .top_pt(3)
+                .build())
+            .child_flex_grow(1.0)
+            .child(&c.filter_button)
+            .child_size(ui::size_builder()
+                .width_button_normal()
+                .height_button()
+                .build())
+            .child_margin(ui::margin_builder()
+                .start_default()
+                .build())
+            .auto_spacing(None)
+            .build_partial(&self.filter_panel_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&c.window)
+            .flex_direction(ui::FlexDirection::Row)
             .child(&c.settings_view)
             .child_flex_grow(1.0)
             .auto_spacing(None)
-            .build_partial(&self.main_view_layout)?;
+            .build_partial(&self.settings_view_layout)?;
 
         nwg::FlexboxLayout::builder()
             .parent(&c.window)
@@ -45,7 +78,8 @@ impl ui::Layout<AppWindowControls> for AppWindowLayout {
         nwg::FlexboxLayout::builder()
             .parent(&c.window)
             .flex_direction(ui::FlexDirection::Column)
-            .child_layout(&self.main_view_layout)
+            .child_layout(&self.filter_panel_layout)
+            .child_layout(&self.settings_view_layout)
             .child_flex_grow(1.0)
             .child_layout(&self.buttons_layout)
             .build(&self.root_layout)?;

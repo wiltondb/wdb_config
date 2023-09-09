@@ -17,6 +17,10 @@ pub(super) struct AppWindowControls {
     pub(super) help_about_menu_item: nwg::MenuItem,
     pub(super) help_website_menu_item: nwg::MenuItem,
 
+    pub(super) filter_combo: nwg::ComboBox<String>,
+    pub(super) filter_input: nwg::TextInput,
+    pub(super) filter_button: nwg::Button,
+
     pub(super) settings_view: nwg::ListView,
     pub(super) reload_button: nwg::Button,
     pub(super) close_button: nwg::Button,
@@ -77,7 +81,29 @@ impl ui::Controls for AppWindowControls {
             .text("Website")
             .build(&mut self.help_website_menu_item)?;
 
-        // main view
+        // filter panel
+
+        nwg::ComboBox::builder()
+            .parent(&self.window)
+            .font(Some(&self.font_normal))
+            .collection(vec!(
+                "All Settings".to_string(),
+                "Networking Only".to_string(),
+                "Logging Only".to_string()
+            ))
+            .selected_index(Some(0))
+            .build(&mut self.filter_combo)?;
+        nwg::TextInput::builder()
+            .parent(&self.window)
+            .font(Some(&self.font_normal))
+            .build(&mut self.filter_input)?;
+        nwg::Button::builder()
+            .parent(&self.window)
+            .font(Some(&self.font_normal))
+            .text("Search")
+            .build(&mut self.filter_button)?;
+
+        // settings view
 
         nwg::ListView::builder()
             .parent(&self.window)
