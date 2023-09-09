@@ -17,7 +17,7 @@ pub(super) struct AppWindowControls {
     pub(super) help_about_menu_item: nwg::MenuItem,
     pub(super) help_website_menu_item: nwg::MenuItem,
 
-    pub(super) main_view: nwg::ListView,
+    pub(super) settings_view: nwg::ListView,
     pub(super) reload_button: nwg::Button,
     pub(super) close_button: nwg::Button,
     pub(super) status_bar: nwg::StatusBar,
@@ -85,7 +85,27 @@ impl ui::Controls for AppWindowControls {
             .list_style(nwg::ListViewStyle::Detailed)
             .focus(true)
             .ex_flags(nwg::ListViewExFlags::GRID | nwg::ListViewExFlags::FULL_ROW_SELECT)
-            .build(&mut self.main_view)?;
+            .build(&mut self.settings_view)?;
+        self.settings_view.set_headers_enabled(true);
+        self.settings_view.insert_column(nwg::InsertListViewColumn{
+            index: Some(0),
+            fmt: Some(nwg::ListViewColumnFlags::LEFT),
+            width: Some(200),
+            text: Some("Name".to_string())
+        });
+        self.settings_view.set_column_sort_arrow(0, Some(nwg::ListViewColumnSortArrow::Down));
+        self.settings_view.insert_column(nwg::InsertListViewColumn{
+            index: Some(1),
+            fmt: Some(nwg::ListViewColumnFlags::LEFT),
+            width: Some(100),
+            text: Some("Value".to_string())
+        });
+        self.settings_view.insert_column(nwg::InsertListViewColumn{
+            index: Some(2),
+            fmt: Some(nwg::ListViewColumnFlags::LEFT),
+            width: Some(400),
+            text: Some("Description".to_string())
+        });
 
         // buttons
 

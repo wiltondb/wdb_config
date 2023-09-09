@@ -8,13 +8,13 @@ pub trait Events<C: Controls> {
 pub struct Event<W> {
     pub control_handle: nwg::ControlHandle,
     pub event: nwg::Event,
-    pub handler: fn(&mut W) -> ()
+    pub handler: fn(&mut W, nwg::EventData) -> ()
 }
 
 pub struct EventBuilder<W> {
     control_handle: Option<nwg::ControlHandle>,
     event: Option<nwg::Event>,
-    handler: Option<fn(&mut W) -> ()>
+    handler: Option<fn(&mut W, nwg::EventData) -> ()>
 }
 
 impl<W> EventBuilder<W> {
@@ -36,7 +36,7 @@ impl<W> EventBuilder<W> {
         self
     }
 
-    pub fn handler(mut self, handler: fn(&mut W) -> ()) -> Self {
+    pub fn handler(mut self, handler: fn(&mut W, nwg::EventData) -> ()) -> Self {
         self.handler = Some(handler);
         self
     }
@@ -52,7 +52,7 @@ impl<W> EventBuilder<W> {
         }?;
         let handler = match self.handler {
             None => return Err(nwg::NwgError::events_binding("Handler not specified".to_string())),
-            Some(h) => Ok::<fn(&mut W) -> (), nwg::NwgError>(h)
+            Some(h) => Ok::<fn(&mut W, nwg::EventData) -> (), nwg::NwgError>(h)
         }?;
 
         events.push(Event {

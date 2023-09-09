@@ -11,20 +11,20 @@ pub struct LoadSettingsDialog {
 }
 
 impl LoadSettingsDialog {
-    pub fn on_load_complete(&mut self) {
+    pub fn on_load_complete(&mut self, _: nwg::EventData) {
         self.c.load_notice.receive();
         let res = self.load_join_handle.join();
         self.stop_progress_bar(res.success);
         if res.success {
             self.loaded_settings = LoadSettingsDialogResult::new(res.records);
-            self.close();
+            self.close(nwg::EventData::NoData);
             return;
         }
         self.c.label.set_text("Load settings failed");
         self.c.details_box.set_text(&res.message);
     }
 
-    pub fn copy_to_clipboard(&mut self) {
+    pub fn copy_to_clipboard(&mut self, _: nwg::EventData) {
         let text = self.c.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
     }
@@ -76,7 +76,7 @@ impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadS
         self.loaded_settings.clone()
     }
 
-    fn close(&mut self) {
+    fn close(&mut self, _: nwg::EventData) {
         self.args.notify_parent();
         self.c.hide_window();
         nwg::stop_thread_dispatch();

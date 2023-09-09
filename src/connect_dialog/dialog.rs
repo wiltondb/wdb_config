@@ -10,25 +10,25 @@ pub struct ConnectDialog {
 }
 
 impl ConnectDialog {
-    pub fn open_check_dialog(&mut self) {
+    pub fn open_check_dialog(&mut self, _: nwg::EventData) {
         self.c.window.set_enabled(false);
         let config = self.config_from_input();
         let args = ConnectCheckDialogArgs::new(&self.c.check_notice, config);
         self.check_joiner = ConnectCheckDialog::popup(args);
     }
 
-    pub fn await_check_dialog(&mut self) {
+    pub fn await_check_dialog(&mut self, _: nwg::EventData) {
         self.c.window.set_enabled(true);
         self.c.check_notice.receive();
         let _ = self.check_joiner.join();
         self.c.shake_window();
     }
 
-    pub fn on_port_input_changed(&mut self) {
+    pub fn on_port_input_changed(&mut self, _: nwg::EventData) {
         self.correct_port_value();
     }
 
-    pub fn on_enable_tls_checkbox_changed(&mut self) {
+    pub fn on_enable_tls_checkbox_changed(&mut self, _: nwg::EventData) {
         self.sync_tls_checkboxes_state();
     }
 
@@ -114,7 +114,7 @@ impl ui::PopupDialog<ConnectDialogArgs, ConnectConfig> for ConnectDialog {
         self.config_from_input()
     }
 
-    fn close(&mut self) {
+    fn close(&mut self, _: nwg::EventData) {
         self.args.notify_parent();
         self.c.hide_window();
         nwg::stop_thread_dispatch();

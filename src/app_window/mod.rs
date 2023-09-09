@@ -19,6 +19,7 @@ use connect_dialog::ConnectDialog;
 use connect_dialog::ConnectDialogArgs;
 use load_settings_dialog::LoadSettingsDialog;
 use load_settings_dialog::LoadSettingsDialogArgs;
+use load_settings_dialog::SettingRecord;
 use load_settings_dialog::LoadSettingsDialogResult;
 
 pub(self) use controls::AppWindowControls;

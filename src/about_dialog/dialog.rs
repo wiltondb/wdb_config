@@ -33,7 +33,7 @@ impl ui::PopupDialog<AboutDialogArgs, ()> for AboutDialog {
         ()
     }
 
-    fn close(&mut self) {
+    fn close(&mut self, _: nwg::EventData) {
         self.args.notify_parent();
         self.c.hide_window();
         nwg::stop_thread_dispatch();

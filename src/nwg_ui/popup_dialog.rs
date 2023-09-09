@@ -8,5 +8,5 @@ pub trait PopupDialog<A: PopupArgs, R> {
 
     fn result(&mut self) -> R;
 
-    fn close(&mut self);
+    fn close(&mut self, _: nwg::EventData);
 }

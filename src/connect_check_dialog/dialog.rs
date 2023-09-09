@@ -10,7 +10,7 @@ pub struct ConnectCheckDialog {
 }
 
 impl ConnectCheckDialog {
-    pub fn on_connection_check_complete(&mut self) {
+    pub fn on_connection_check_complete(&mut self, _: nwg::EventData) {
         self.c.check_notice.receive();
         let res = self.check_join_handle.join();
         self.stop_progress_bar(res.success);
@@ -23,7 +23,7 @@ impl ConnectCheckDialog {
         self.c.details_box.set_text(&res.message);
     }
 
-    pub fn copy_to_clipboard(&mut self) {
+    pub fn copy_to_clipboard(&mut self, _: nwg::EventData) {
         let text = self.c.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
     }
@@ -76,7 +76,7 @@ impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for Conne
         Default::default()
     }
 
-    fn close(&mut self) {
+    fn close(&mut self, _: nwg::EventData) {
         self.args.send_notice();
         self.c.hide_window();
         nwg::stop_thread_dispatch();

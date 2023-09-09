@@ -13,7 +13,7 @@ impl ui::Layout<AppWindowControls> for AppWindowLayout {
         nwg::FlexboxLayout::builder()
             .parent(&c.window)
             .flex_direction(ui::FlexDirection::Row)
-            .child(&c.main_view)
+            .child(&c.settings_view)
             .child_flex_grow(1.0)
             .auto_spacing(None)
             .build_partial(&self.main_view_layout)?;

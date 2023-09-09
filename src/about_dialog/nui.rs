@@ -33,13 +33,13 @@ impl nwg::NativeUi<AboutDialogNui> for AboutDialog {
 
         let dialog_ref = Rc::downgrade(&wrapper.inner);
         let events_ref = Rc::downgrade(&wrapper.inner_events);
-        let handle_events = move |evt, _evt_data, handle| {
+        let handle_events = move |evt, evt_data, handle| {
             if let Some(evt_dialog_ref) = dialog_ref.upgrade() {
                 if let Some(evt_events_ref) = events_ref.upgrade() {
                     for eh in evt_events_ref.events.iter() {
                         if handle == eh.control_handle && evt == eh.event {
                             let mut evt_dialog = evt_dialog_ref.borrow_mut();
-                            (eh.handler)(&mut evt_dialog);
+                            (eh.handler)(&mut evt_dialog, evt_data);
                             break;
                         }
                     }

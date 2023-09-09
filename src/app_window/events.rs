@@ -37,6 +37,12 @@ impl ui::Events<AppWindowControls> for AppWindowEvents {
             .build(&mut self.events)?;
 
         ui::event_builder()
+            .control(&c.settings_view)
+            .event(nwg::Event::OnListViewColumnClick)
+            .handler(AppWindow::on_settings_view_sort)
+            .build(&mut self.events)?;
+
+        ui::event_builder()
             .control(&c.reload_button)
             .event(nwg::Event::OnButtonClick)
             .handler(AppWindow::open_load_dialog)
