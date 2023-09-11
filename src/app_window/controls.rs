@@ -29,6 +29,7 @@ pub(super) struct AppWindowControls {
     pub(super) about_notice: ui::SyncNotice,
     pub(super) connect_notice: ui::SyncNotice,
     pub(super) load_settings_notice: ui::SyncNotice,
+    pub(super) setting_notice: ui::SyncNotice,
 }
 
 impl ui::Controls for AppWindowControls {
@@ -165,13 +166,12 @@ impl ui::Controls for AppWindowControls {
         ui::notice_builder()
             .parent(&self.window)
             .build(&mut self.load_settings_notice)?;
+        ui::notice_builder()
+            .parent(&self.window)
+            .build(&mut self.setting_notice)?;
 
         self.layout.build(&self)?;
 
         Ok(())
-    }
-
-    fn window(&self) -> &nwg::Window {
-        &self.window
     }
 }

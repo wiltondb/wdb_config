@@ -11,7 +11,7 @@ pub(super) struct ConnectDialogNui {
 }
 
 impl ConnectDialogNui {
-    pub(super) fn result(&mut self) -> ConnectConfig {
+    pub(super) fn result(&mut self) -> PgConnConfig {
         self.inner.borrow_mut().result()
     }
 }
@@ -23,7 +23,7 @@ impl nwg::NativeUi<ConnectDialogNui> for ConnectDialog {
         events.build(&dialog.c)?;
         dialog.init();
 
-        let window_handle = dialog.c.window().handle.clone();
+        let window_handle = dialog.c.window.handle.clone();
 
         let wrapper = ConnectDialogNui {
             inner:  Rc::new(RefCell::new(dialog)),

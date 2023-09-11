@@ -121,8 +121,4 @@ impl ui::Controls for ConnectDialogControls {
 
         Ok(())
     }
-
-    fn window(&self) -> &nwg::Window {
-        &self.window
-    }
 }

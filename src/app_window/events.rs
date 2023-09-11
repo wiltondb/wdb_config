@@ -56,7 +56,7 @@ impl ui::Events<AppWindowControls> for AppWindowEvents {
         ui::event_builder()
             .control(&c.settings_view)
             .event(nwg::Event::OnListViewDoubleClick)
-            .handler(AppWindow::on_settings_view_dblckick)
+            .handler(AppWindow::open_setting_dialog)
             .build(&mut self.events)?;
 
         ui::event_builder()
@@ -85,6 +85,11 @@ impl ui::Events<AppWindowControls> for AppWindowEvents {
             .control(&c.load_settings_notice.notice)
             .event(nwg::Event::OnNotice)
             .handler(AppWindow::await_load_dialog)
+            .build(&mut self.events)?;
+        ui::event_builder()
+            .control(&c.setting_notice.notice)
+            .event(nwg::Event::OnNotice)
+            .handler(AppWindow::await_setting_dialog)
             .build(&mut self.events)?;
 
         Ok(())

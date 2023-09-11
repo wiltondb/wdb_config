@@ -17,13 +17,15 @@ use ui::PopupDialog;
 
 use about_dialog::AboutDialog;
 use about_dialog::AboutDialogArgs;
-use connect_dialog::ConnectConfig;
+use common::PgConnConfig;
+use common::SettingRecord;
 use connect_dialog::ConnectDialog;
 use connect_dialog::ConnectDialogArgs;
 use load_settings_dialog::LoadSettingsDialog;
 use load_settings_dialog::LoadSettingsDialogArgs;
-use load_settings_dialog::SettingRecord;
 use load_settings_dialog::LoadSettingsDialogResult;
+use setting_dialog::SettingDialog;
+use setting_dialog::SettingDialogArgs;
 
 pub(self) use controls::AppWindowControls;
 pub(self) use events::AppWindowEvents;

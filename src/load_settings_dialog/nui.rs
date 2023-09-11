@@ -23,7 +23,7 @@ impl nwg::NativeUi<LoadSettingsDialogNui> for LoadSettingsDialog {
         events.build(&dialog.c)?;
         dialog.init();
 
-        let window_handle = dialog.c.window().handle.clone();
+        let window_handle = dialog.c.window.handle.clone();
 
         let wrapper = LoadSettingsDialogNui {
             inner:  Rc::new(RefCell::new(dialog)),

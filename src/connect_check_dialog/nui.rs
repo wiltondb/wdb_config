@@ -23,7 +23,7 @@ impl nwg::NativeUi<ConnectCheckDialogNui> for ConnectCheckDialog {
         events.build(&dialog.c)?;
         dialog.init();
 
-        let window_handle = dialog.c.window().handle.clone();
+        let window_handle = dialog.c.window.handle.clone();
 
         let wrapper = ConnectCheckDialogNui {
             inner:  Rc::new(RefCell::new(dialog)),

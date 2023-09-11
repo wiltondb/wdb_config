@@ -1,6 +1,5 @@
 
 mod args;
-mod config;
 mod controls;
 mod dialog;
 mod events;
@@ -22,8 +21,8 @@ use connect_check_dialog::ConnectCheckDialog;
 use connect_check_dialog::ConnectCheckDialogArgs;
 use connect_check_dialog::ConnectCheckDialogResult;
 
-pub use config::ConnectConfig;
 pub use args::ConnectDialogArgs;
+use common::PgConnConfig;
 pub(self) use controls::ConnectDialogControls;
 pub use dialog::ConnectDialog;
 use events::ConnectDialogEvents;

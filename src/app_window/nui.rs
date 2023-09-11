@@ -17,7 +17,7 @@ impl nwg::NativeUi<AppWindowNui> for AppWindow {
         events.build(&dialog.c)?;
         dialog.init();
 
-        let window_handle = dialog.c.window().handle.clone();
+        let window_handle = dialog.c.window.handle.clone();
 
         let wrapper = AppWindowNui {
             inner:  Rc::new(RefCell::new(dialog)),

@@ -4,28 +4,28 @@ use std::rc::Rc;
 
 use super::*;
 
-pub(super) struct AboutDialogNui {
-    inner: Rc<RefCell<AboutDialog>>,
-    inner_events: Rc<AboutDialogEvents>,
+pub(super) struct SettingDialogNui {
+    inner: Rc<RefCell<SettingDialog>>,
+    inner_events: Rc<SettingDialogEvents>,
     default_handler: RefCell<Option<nwg::EventHandler>>
 }
 
-impl AboutDialogNui {
+impl SettingDialogNui {
     pub(super) fn result(&mut self) -> () {
         self.inner.borrow_mut().result()
     }
 }
 
-impl nwg::NativeUi<AboutDialogNui> for AboutDialog {
-    fn build_ui(mut dialog: AboutDialog) -> Result<AboutDialogNui, nwg::NwgError> {
-        let mut events: AboutDialogEvents = Default::default();
+impl nwg::NativeUi<SettingDialogNui> for SettingDialog {
+    fn build_ui(mut dialog: SettingDialog) -> Result<SettingDialogNui, nwg::NwgError> {
+        let mut events: SettingDialogEvents = Default::default();
         dialog.c.build()?;
         events.build(&dialog.c)?;
         dialog.init();
 
         let window_handle = dialog.c.window.handle.clone();
 
-        let wrapper = AboutDialogNui {
+        let wrapper = SettingDialogNui {
             inner:  Rc::new(RefCell::new(dialog)),
             inner_events: Rc::new(events),
             default_handler: Default::default(),
@@ -53,7 +53,7 @@ impl nwg::NativeUi<AboutDialogNui> for AboutDialog {
     }
 }
 
-impl Drop for AboutDialogNui {
+impl Drop for SettingDialogNui {
     fn drop(&mut self) {
         let handler = self.default_handler.borrow();
         if handler.is_some() {

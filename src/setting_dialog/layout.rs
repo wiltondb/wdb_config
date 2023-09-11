@@ -1,0 +1,103 @@
+
+use super::*;
+
+#[derive(Default)]
+pub(super) struct SettingDialogLayout {
+    root_layout: nwg::FlexboxLayout,
+    name_layout: nwg::FlexboxLayout,
+    current_value_layout: nwg::FlexboxLayout,
+    new_value_layout: nwg::FlexboxLayout,
+    spacer_layout: nwg::FlexboxLayout,
+    buttons_layout: nwg::FlexboxLayout,
+}
+
+impl ui::Layout<SettingDialogControls> for SettingDialogLayout {
+    fn build(&self, c: &SettingDialogControls) -> Result<(), nwg::NwgError> {
+        nwg::FlexboxLayout::builder()
+            .parent(&c.window)
+            .flex_direction(ui::FlexDirection::Row)
+            .auto_spacing(None)
+            .child(&c.name_label)
+            .child_size(ui::size_builder()
+                .width_label_normal()
+                .height_input_form_row()
+                .build())
+            .child(&c.name_input)
+            .child_margin(ui::margin_builder()
+                .start_pt(5)
+                .build())
+            .child_flex_grow(1.0)
+            .build_partial(&self.name_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&c.window)
+            .flex_direction(ui::FlexDirection::Row)
+            .auto_spacing(None)
+            .child(&c.current_value_label)
+            .child_size(ui::size_builder()
+                .width_label_normal()
+                .height_input_form_row()
+                .build())
+            .child(&c.current_value_input)
+            .child_margin(ui::margin_builder()
+                .start_pt(5)
+                .build())
+            .child_flex_grow(1.0)
+            .build_partial(&self.current_value_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&c.window)
+            .flex_direction(ui::FlexDirection::Row)
+            .auto_spacing(None)
+            .child(&c.new_value_label)
+            .child_size(ui::size_builder()
+                .width_label_normal()
+                .height_input_form_row()
+                .build())
+            .child(&c.new_value_input)
+            .child_margin(ui::margin_builder()
+                .start_pt(5)
+                .build())
+            .child_flex_grow(1.0)
+            .build_partial(&self.new_value_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&c.window)
+            .flex_direction(ui::FlexDirection::Row)
+            .auto_spacing(None)
+            .build_partial(&self.spacer_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&c.window)
+            .flex_direction(ui::FlexDirection::Row)
+            .justify_content(ui::JustifyContent::FlexEnd)
+            .auto_spacing(None)
+            .child(&c.change_button)
+            .child_size(ui::size_builder()
+                .width_button_normal()
+                .height_button()
+                .build())
+            .child(&c.close_button)
+            .child_size(ui::size_builder()
+                .width_button_normal()
+                .height_button()
+                .build())
+            .child_margin(ui::margin_builder()
+                .start_pt(5)
+                .build())
+            .build_partial(&self.buttons_layout)?;
+
+        nwg::FlexboxLayout::builder()
+            .parent(&c.window)
+            .flex_direction(ui::FlexDirection::Column)
+            .child_layout(&self.name_layout)
+            .child_layout(&self.current_value_layout)
+            .child_layout(&self.new_value_layout)
+            .child_layout(&self.spacer_layout)
+            .child_flex_grow(1.0)
+            .child_layout(&self.buttons_layout)
+            .build(&self.root_layout)?;
+
+        Ok(())
+    }
+}

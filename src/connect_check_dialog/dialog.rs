@@ -36,6 +36,15 @@ impl ConnectCheckDialog {
             self.c.progress_bar.set_state(nwg::ProgressBarState::Error)
         }
     }
+
+    fn check_postgres_conn(pg_conn_config: &PgConnConfig) -> Result<String, PgConnError> {
+        let mut client = pg_conn_config.open_connection()?;
+        let vec = client.query("select version()", &[])?;
+        let row = &vec[0];
+        let res: String = row.get("version");
+        client.close()?;
+        Ok(res)
+    }
 }
 
 impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for ConnectCheckDialog {
@@ -54,10 +63,10 @@ impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for Conne
 
     fn init(&mut self) {
         let sender = self.c.check_notice.sender();
-        let config = self.args.config.clone();
+        let pgconf = self.args.pg_conn_config.clone();
         let join_handle = thread::spawn(move || {
             let start = Instant::now();
-            let res = match check_postgres_conn(&config) {
+            let res = match ConnectCheckDialog::check_postgres_conn(&pgconf) {
                 Ok(version) => ConnectCheckResult::success(version),
                 Err(e) => ConnectCheckResult::failure(format!("{}", e))
             };
@@ -78,13 +87,13 @@ impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for Conne
 
     fn close(&mut self, _: nwg::EventData) {
         self.args.send_notice();
-        self.c.hide_window();
+        self.c.window.set_visible(false);
         nwg::stop_thread_dispatch();
     }
 }
 
 #[derive(Default)]
-pub struct ConnectCheckResult {
+struct ConnectCheckResult {
     success: bool,
     message: String,
 }
@@ -105,29 +114,3 @@ impl ConnectCheckResult {
     }
 }
 
-fn check_postgres_conn(config: &ConnectConfig) -> Result<String, ConnectCheckDialogError> {
-    let pgconf = Config::new()
-        .host(&config.hostname)
-        .port(config.port)
-        .user(&config.username)
-        .password(&config.password)
-        .connect_timeout(Duration::from_secs(10))
-        .clone();
-
-    let mut client = if config.enable_tls {
-        let connector = TlsConnector::builder()
-            .danger_accept_invalid_certs(config.accept_invalid_tls)
-            .danger_accept_invalid_hostnames(config.accept_invalid_tls)
-            .build()?;
-        let tls = MakeTlsConnector::new(connector);
-        pgconf.connect(tls)?
-    } else {
-        pgconf.connect(NoTls)?
-    };
-
-    let vec = client.query("select version()", &[])?;
-    let row = &vec[0];
-    let res: String = row.get("version");
-    client.close()?;
-    Ok(res)
-}

@@ -21,7 +21,7 @@ impl ConnectDialog {
         self.c.window.set_enabled(true);
         self.c.check_notice.receive();
         let _ = self.check_joiner.join();
-        self.c.shake_window();
+        ui::shake_window(&self.c.window);
     }
 
     pub fn on_port_input_changed(&mut self, _: nwg::EventData) {
@@ -50,12 +50,12 @@ impl ConnectDialog {
         }
     }
 
-    pub fn config_from_input(&self) -> ConnectConfig {
+    pub fn config_from_input(&self) -> PgConnConfig {
         let port = match self.c.port_input.text().parse::<u16>() {
             Ok(n) => n,
             Err(_) => 5432,
         };
-        ConnectConfig {
+        PgConnConfig {
             hostname: self.c.hostname_input.text(),
             port,
             username: self.c.username_input.text(),
@@ -66,7 +66,7 @@ impl ConnectDialog {
         }
     }
 
-    pub fn config_to_input(&self, config: &ConnectConfig) {
+    pub fn config_to_input(&self, config: &PgConnConfig) {
         self.c.hostname_input.set_text(&config.hostname);
         self.c.port_input.set_text(&config.port.to_string());
         self.c.username_input.set_text(&config.username);
@@ -91,8 +91,8 @@ impl ConnectDialog {
     }
 }
 
-impl ui::PopupDialog<ConnectDialogArgs, ConnectConfig> for ConnectDialog {
-    fn popup(args: ConnectDialogArgs) -> ui::PopupJoinHandle<ConnectConfig> {
+impl ui::PopupDialog<ConnectDialogArgs, PgConnConfig> for ConnectDialog {
+    fn popup(args: ConnectDialogArgs) -> ui::PopupJoinHandle<PgConnConfig> {
         let join_handle = thread::spawn(move || {
             let data = Self {
                 args,
@@ -106,17 +106,17 @@ impl ui::PopupDialog<ConnectDialogArgs, ConnectConfig> for ConnectDialog {
     }
 
     fn init(&mut self) {
-        self.config_to_input(&self.args.config);
-        self.c.shake_window();
+        self.config_to_input(&self.args.pg_conn_config);
+        ui::shake_window(&self.c.window);
     }
 
-    fn result(&mut self) -> ConnectConfig {
+    fn result(&mut self) -> PgConnConfig {
         self.config_from_input()
     }
 
     fn close(&mut self, _: nwg::EventData) {
         self.args.notify_parent();
-        self.c.hide_window();
+        self.c.window.set_visible(false);
         nwg::stop_thread_dispatch();
     }
 }

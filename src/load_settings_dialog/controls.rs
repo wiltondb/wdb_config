@@ -74,8 +74,4 @@ impl ui::Controls for LoadSettingsDialogControls {
 
         Ok(())
     }
-
-    fn window(&self) -> &nwg::Window {
-        &self.window
-    }
 }

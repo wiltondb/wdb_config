@@ -4,14 +4,14 @@ use super::*;
 #[derive(Default)]
 pub struct ConnectCheckDialogArgs {
     pub(super) notice_sender:  ui::SyncNoticeSender,
-    pub(super) config: ConnectConfig,
+    pub(super) pg_conn_config: PgConnConfig,
 }
 
 impl ConnectCheckDialogArgs {
-    pub fn new(notice: &ui::SyncNotice, config: ConnectConfig) -> Self {
+    pub fn new(notice: &ui::SyncNotice, pg_conn_config: PgConnConfig) -> Self {
         Self {
             notice_sender: notice.sender(),
-            config,
+            pg_conn_config,
         }
     }
 

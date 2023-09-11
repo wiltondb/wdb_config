@@ -52,3 +52,10 @@ pub fn event_builder<W>() -> EventBuilder<W> {
 pub fn notice_builder() -> SyncNoticeBuilder {
     SyncNoticeBuilder::new()
 }
+
+pub fn shake_window(window: &nwg::Window) {
+    // workaround for garbled text
+    let (wx, wy) = window.size();
+    window.set_size(wx + 1, wy + 1);
+    window.set_size(wx, wy);
+}

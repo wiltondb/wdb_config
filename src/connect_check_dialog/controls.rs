@@ -75,8 +75,4 @@ impl ui::Controls for ConnectCheckDialogControls {
 
         Ok(())
     }
-
-    fn window(&self) -> &nwg::Window {
-        &self.window
-    }
 }

@@ -11,7 +11,7 @@ use super::*;
 pub struct AppWindow {
     pub(super) c: AppWindowControls,
 
-    config: ConnectConfig,
+    pg_conn_config: PgConnConfig,
     settings: Vec<SettingRecord>,
 
     networking_settings: HashSet<String>,
@@ -20,8 +20,9 @@ pub struct AppWindow {
     escape_hatch_settings: HashSet<String>,
 
     about_dialog_join_handle: ui::PopupJoinHandle<()>,
-    connect_dialog_join_handle: ui::PopupJoinHandle<ConnectConfig>,
+    connect_dialog_join_handle: ui::PopupJoinHandle<PgConnConfig>,
     load_settings_dialog_join_handle: ui::PopupJoinHandle<LoadSettingsDialogResult>,
+    setting_dialog_join_handle: ui::PopupJoinHandle<()>,
 }
 
 impl AppWindow {
@@ -31,13 +32,13 @@ impl AppWindow {
     }
 
     pub(super) fn init(&mut self) {
-        self.config.hostname = String::from("localhost");
-        self.config.port = 5432;
-        self.config.username = String::from("wilton");
+        self.pg_conn_config.hostname = String::from("localhost");
+        self.pg_conn_config.port = 5432;
+        self.pg_conn_config.username = String::from("wilton");
         // todo: removeme
-        self.config.password = String::from("wilton");
-        self.config.enable_tls = true;
-        self.config.accept_invalid_tls = true;
+        self.pg_conn_config.password = String::from("wilton");
+        self.pg_conn_config.enable_tls = true;
+        self.pg_conn_config.accept_invalid_tls = true;
 
         self.networking_settings = setting_groups::networking();
         self.logging_settings = setting_groups::logging();
@@ -48,7 +49,7 @@ impl AppWindow {
     }
 
     pub(super) fn close(&mut self, _: nwg::EventData) {
-        self.c.hide_window();
+        self.c.window.set_visible(false);
         nwg::stop_thread_dispatch();
     }
 
@@ -66,27 +67,23 @@ impl AppWindow {
 
     pub(super) fn open_connect_dialog(&mut self, _: nwg::EventData) {
         self.c.window.set_enabled(false);
-        let args = ConnectDialogArgs::new(&self.c.connect_notice, self.config.clone());
+        let args = ConnectDialogArgs::new(&self.c.connect_notice, self.pg_conn_config.clone());
         self.connect_dialog_join_handle = ConnectDialog::popup(args);
     }
 
     pub(super) fn await_connect_dialog(&mut self, _: nwg::EventData) {
         self.c.window.set_enabled(true);
         self.c.connect_notice.receive();
-        self.config = self.connect_dialog_join_handle.join();
-        self.set_status_bar_hostname(&self.config.hostname);
+        self.pg_conn_config = self.connect_dialog_join_handle.join();
+        self.set_status_bar_hostname(&self.pg_conn_config.hostname);
         self.open_load_dialog(nwg::EventData::NoData);
-    }
-
-    pub(super) fn set_status_bar_hostname(&self, text: &str) {
-        self.c.status_bar.set_text(0, &format!("  DB host: {}", text));
     }
 
     pub(super) fn open_load_dialog(&mut self, _: nwg::EventData) {
         self.settings.truncate(0);
         self.reload_settings_view();
         self.c.window.set_enabled(false);
-        let args = LoadSettingsDialogArgs::new(&self.c.load_settings_notice, self.config.clone());
+        let args = LoadSettingsDialogArgs::new(&self.c.load_settings_notice, self.pg_conn_config.clone());
         self.load_settings_dialog_join_handle = LoadSettingsDialog::popup(args);
     }
 
@@ -97,6 +94,39 @@ impl AppWindow {
         self.settings = res.records;
         self.reload_settings_view();
         self.c.filter_input.set_enabled(true);
+    }
+
+    pub(super) fn open_setting_dialog(&mut self, ed: nwg::EventData) {
+        let row_idx = if let nwg::EventData::OnListViewItemIndex
+        { row_index: row_idx, .. } = ed {
+            row_idx
+        } else {
+            return;
+        };
+        let name = match self.c.settings_view.item(row_idx, 0, 1<<16) {
+            Some(item) => item.text,
+            None => return
+        };
+        let setting = match self.c.settings_view.item(row_idx, 1, 1<<16) {
+            Some(item) => item.text,
+            None => return
+        };
+        let description = match self.c.settings_view.item(row_idx, 2, 1<<16) {
+            Some(item) => item.text,
+            None => return
+        };
+        let st = SettingRecord {
+            name, setting, description
+        };
+        self.c.window.set_enabled(false);
+        let args = SettingDialogArgs::new(&self.c.setting_notice, self.pg_conn_config.clone(), st);
+        self.setting_dialog_join_handle = SettingDialog::popup(args);
+    }
+
+    pub(super) fn await_setting_dialog(&mut self, _: nwg::EventData) {
+        self.c.window.set_enabled(true);
+        self.c.setting_notice.receive();
+        let _ = self.setting_dialog_join_handle.join();
     }
 
     pub(super) fn open_website(&mut self, _: nwg::EventData) {
@@ -146,8 +176,8 @@ impl AppWindow {
         self.reload_settings_view()
     }
 
-    pub(super) fn on_settings_view_dblckick(&mut self, ed: nwg::EventData) {
-        ui::message_box_debug(format!("{:?}", ed));
+    fn set_status_bar_hostname(&self, text: &str) {
+        self.c.status_bar.set_text(0, &format!("  DB host: {}", text));
     }
 
     fn setting_matches_filters(&self, name: &str) -> bool {

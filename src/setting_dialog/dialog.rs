@@ -2,17 +2,15 @@
 use super::*;
 
 #[derive(Default)]
-pub struct AboutDialog {
-    pub(super) c: AboutDialogControls,
+pub struct SettingDialog {
+    pub(super) c: SettingDialogControls,
 
-    args: AboutDialogArgs,
+    args: SettingDialogArgs,
+    change_join_handle: ui::PopupJoinHandle<()>,
 }
 
-impl AboutDialog {
-}
-
-impl ui::PopupDialog<AboutDialogArgs, ()> for AboutDialog {
-    fn popup(args: AboutDialogArgs) -> ui::PopupJoinHandle<()> {
+impl ui::PopupDialog<SettingDialogArgs, ()> for SettingDialog {
+    fn popup(args: SettingDialogArgs) -> PopupJoinHandle<()> {
         let join_handle = thread::spawn(move || {
             let data = Self {
                 args,
@@ -26,7 +24,8 @@ impl ui::PopupDialog<AboutDialogArgs, ()> for AboutDialog {
     }
 
     fn init(&mut self) {
-        ui::shake_window(&self.c.window);
+        self.c.name_input.set_text(&self.args.setting.name);
+        self.c.current_value_input.set_text(&self.args.setting.setting);
     }
 
     fn result(&mut self) -> () {

@@ -1,11 +1,13 @@
 #![windows_subsystem = "windows"]
 
+mod nwg_ui;
+mod common;
 mod about_dialog;
 mod app_window;
 mod connect_dialog;
 mod connect_check_dialog;
 mod load_settings_dialog;
-mod nwg_ui;
+mod setting_dialog;
 
 use nwg::NativeUi;
 

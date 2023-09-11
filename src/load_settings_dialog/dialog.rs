@@ -37,6 +37,20 @@ impl LoadSettingsDialog {
             self.c.progress_bar.set_state(nwg::ProgressBarState::Error)
         }
     }
+
+    fn load_settings_from_db(pg_conn_config: &PgConnConfig) -> Result<Vec<SettingRecord>, PgConnError> {
+        let mut client = pg_conn_config.open_connection()?;
+        let vec = client.query("show all", &[])?;
+        client.close()?;
+        let res = vec.iter().map(|row| {
+            SettingRecord {
+                name: row.get("name"),
+                setting: row.get("setting"),
+                description: row.get("description"),
+            }
+        }).collect();
+        Ok(res)
+    }
 }
 
 impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadSettingsDialog {
@@ -55,10 +69,10 @@ impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadS
 
     fn init(&mut self) {
         let sender = self.c.load_notice.sender();
-        let config = self.args.config.clone();
+        let pgconf = self.args.pg_conn_config.clone();
         let join_handle = thread::spawn(move || {
             let start = Instant::now();
-            let res = match load_settings_from_db(&config) {
+            let res = match LoadSettingsDialog::load_settings_from_db(&pgconf) {
                 Ok(records) => LoadSettingsResult::success(records),
                 Err(e) => LoadSettingsResult::failure(format!("{}", e))
             };
@@ -78,7 +92,7 @@ impl ui::PopupDialog<LoadSettingsDialogArgs, LoadSettingsDialogResult> for LoadS
 
     fn close(&mut self, _: nwg::EventData) {
         self.args.notify_parent();
-        self.c.hide_window();
+        self.c.window.set_visible(false);
         nwg::stop_thread_dispatch();
     }
 }
@@ -106,36 +120,4 @@ impl LoadSettingsResult {
             records: Vec::new(),
         }
     }
-}
-
-fn load_settings_from_db(config: &ConnectConfig) -> Result<Vec<SettingRecord>, LoadSettingsDialogError> {
-    let pgconf = Config::new()
-        .host(&config.hostname)
-        .port(config.port)
-        .user(&config.username)
-        .password(&config.password)
-        .connect_timeout(Duration::from_secs(10))
-        .clone();
-
-    let mut client = if config.enable_tls {
-        let connector = TlsConnector::builder()
-            .danger_accept_invalid_certs(config.accept_invalid_tls)
-            .danger_accept_invalid_hostnames(config.accept_invalid_tls)
-            .build()?;
-        let tls = MakeTlsConnector::new(connector);
-        pgconf.connect(tls)?
-    } else {
-        pgconf.connect(NoTls)?
-    };
-
-    let vec = client.query("show all", &[])?;
-    client.close()?;
-    let res = vec.iter().map(|row| {
-        SettingRecord {
-            name: row.get("name"),
-            setting: row.get("setting"),
-            description: row.get("description"),
-        }
-    }).collect();
-    Ok(res)
 }

@@ -44,8 +44,4 @@ impl ui::Controls for AboutDialogControls {
 
         Ok(())
     }
-
-    fn window(&self) -> &nwg::Window {
-        &self.window
-    }
 }
