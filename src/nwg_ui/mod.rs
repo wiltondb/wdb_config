@@ -59,3 +59,22 @@ pub fn shake_window(window: &nwg::Window) {
     window.set_size(wx + 1, wy + 1);
     window.set_size(wx, wy);
 }
+
+pub fn wrap_label_text(text: &str, limit_chars: usize) -> String {
+    if text.len() < limit_chars {
+        return text.to_string();
+    }
+    let mut res = String::new();
+    let mut count = 0;
+    for ch in text.chars() {
+        if count >= limit_chars && ' ' == ch {
+            res.push('\r');
+            res.push('\n');
+            count = 0;
+        } else {
+            res.push(ch);
+        }
+        count += 1;
+    }
+    res
+}

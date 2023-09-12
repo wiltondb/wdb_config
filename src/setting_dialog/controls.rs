@@ -15,6 +15,7 @@ pub(super) struct SettingDialogControls {
     pub(super) current_value_input: nwg::TextInput,
     pub(super) new_value_label: nwg::Label,
     pub(super) new_value_input: nwg::TextInput,
+    pub(super) description_label: nwg::Label,
 
     pub(super) change_button: nwg::Button,
     pub(super) close_button: nwg::Button,
@@ -31,9 +32,9 @@ impl ui::Controls for SettingDialogControls {
             .build(&mut self.font_normal)?;
 
         nwg::Window::builder()
-            .size((320, 200))
+            .size((480, 200))
             .center(true)
-            .title("Check")
+            .title("Change setting")
             .build(&mut self.window)?;
 
         nwg::Label::builder()
@@ -42,7 +43,7 @@ impl ui::Controls for SettingDialogControls {
             .parent(&self.window)
             .build(&mut self.name_label)?;
         nwg::TextInput::builder()
-            .flags(nwg::TextInputFlags::VISIBLE | nwg::TextInputFlags::DISABLED)
+            .readonly(true)
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.name_input)?;
@@ -53,24 +54,29 @@ impl ui::Controls for SettingDialogControls {
             .parent(&self.window)
             .build(&mut self.current_value_label)?;
         nwg::TextInput::builder()
-            .flags(nwg::TextInputFlags::VISIBLE | nwg::TextInputFlags::DISABLED)
+            .readonly(true)
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.current_value_input)?;
 
         nwg::Label::builder()
-            .text("Current value:")
+            .text("New value:")
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.new_value_label)?;
         nwg::TextInput::builder()
-            .flags(nwg::TextInputFlags::VISIBLE | nwg::TextInputFlags::DISABLED)
+            .flags(nwg::TextInputFlags::VISIBLE)
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.new_value_input)?;
 
+        nwg::Label::builder()
+            .font(Some(&self.font_normal))
+            .parent(&self.window)
+            .build(&mut self.description_label)?;
+
         nwg::Button::builder()
-            .text("Change setting")
+            .text("Apply change")
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.change_button)?;

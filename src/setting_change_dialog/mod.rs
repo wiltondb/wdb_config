@@ -24,10 +24,10 @@ use ui::PopupDialog;
 use common::PgConnConfig;
 use common::PgConnError;
 
-pub use args::ConnectCheckDialogArgs;
-pub(self) use controls::ConnectCheckDialogControls;
-pub use dialog::ConnectCheckDialog;
-use events::ConnectCheckDialogEvents;
-use layout::ConnectCheckDialogLayout;
-pub use result::ConnectCheckDialogResult;
-use result::ConnectCheckResult;
+pub use args::SettingChangeDialogArgs;
+pub(self) use controls::SettingChangeDialogControls;
+pub use dialog::SettingChangeDialog;
+use events::SettingChangeDialogEvents;
+use layout::SettingChangeDialogLayout;
+use result::ChangeResult;
+pub use result::SettingChangeDialogResult;

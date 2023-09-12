@@ -7,9 +7,15 @@ pub struct PgConnError {
 }
 
 impl PgConnError {
-    fn new<E: fmt::Display>(e: &E) -> Self {
+    pub fn new<E: fmt::Display>(e: &E) -> Self {
         Self {
             message: format!("{}", e)
+        }
+    }
+
+    pub fn from_string(message: String) -> Self {
+        Self {
+            message
         }
     }
 }

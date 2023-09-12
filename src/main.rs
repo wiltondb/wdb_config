@@ -8,6 +8,7 @@ mod connect_dialog;
 mod connect_check_dialog;
 mod load_settings_dialog;
 mod setting_dialog;
+mod setting_change_dialog;
 
 use nwg::NativeUi;
 

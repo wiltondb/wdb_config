@@ -10,7 +10,7 @@ pub struct ConnectCheckDialog {
 }
 
 impl ConnectCheckDialog {
-    pub fn on_connection_check_complete(&mut self, _: nwg::EventData) {
+    pub(super) fn on_connection_check_complete(&mut self, _: nwg::EventData) {
         self.c.check_notice.receive();
         let res = self.check_join_handle.join();
         self.stop_progress_bar(res.success);
@@ -23,12 +23,12 @@ impl ConnectCheckDialog {
         self.c.details_box.set_text(&res.message);
     }
 
-    pub fn copy_to_clipboard(&mut self, _: nwg::EventData) {
+    pub(super) fn copy_to_clipboard(&mut self, _: nwg::EventData) {
         let text = self.c.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
     }
 
-    pub fn stop_progress_bar(&self, success: bool) {
+    fn stop_progress_bar(&self, success: bool) {
         self.c.progress_bar.set_marquee(false, 0);
         self.c.progress_bar.remove_flags(nwg::ProgressBarFlags::MARQUEE);
         self.c.progress_bar.set_pos(1);
@@ -89,28 +89,6 @@ impl ui::PopupDialog<ConnectCheckDialogArgs, ConnectCheckDialogResult> for Conne
         self.args.send_notice();
         self.c.window.set_visible(false);
         nwg::stop_thread_dispatch();
-    }
-}
-
-#[derive(Default)]
-struct ConnectCheckResult {
-    success: bool,
-    message: String,
-}
-
-impl ConnectCheckResult {
-    fn success(message: String) -> Self {
-        Self {
-            success: true,
-            message
-        }
-    }
-
-    fn failure(message: String) -> Self {
-        Self {
-            success: false,
-            message
-        }
     }
 }
 

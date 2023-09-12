@@ -6,7 +6,36 @@ pub struct SettingDialog {
     pub(super) c: SettingDialogControls,
 
     args: SettingDialogArgs,
-    change_join_handle: ui::PopupJoinHandle<()>,
+    change_join_handle: ui::PopupJoinHandle<SettingChangeDialogResult>,
+}
+
+impl SettingDialog {
+   pub(super) fn open_change_dialog(&mut self, _: nwg::EventData) {
+       self.c.window.set_enabled(false);
+       let value = self.c.new_value_input.text();
+       let args = SettingChangeDialogArgs::new(
+           &self.c.change_notice, self.args.pg_conn_config.clone(),
+            self.args.setting.name.clone(), value);
+       self.change_join_handle = SettingChangeDialog::popup(args);
+   }
+
+    pub(super) fn await_change_dialog(&mut self, _: nwg::EventData) {
+        self.c.window.set_enabled(true);
+        self.c.change_notice.receive();
+        let res = self.change_join_handle.join();
+        if res.success {
+            self.c.current_value_input.set_text(&res.effective_value);
+        }
+        ui::shake_window(&self.c.window);
+    }
+
+    pub(super) fn on_new_value_change(&mut self, _: nwg::EventData) {
+        let cur_val = self.c.current_value_input.text();
+        let new_val = self.c.new_value_input.text();
+        if new_val != cur_val {
+            self.c.change_button.set_enabled(true);
+        }
+    }
 }
 
 impl ui::PopupDialog<SettingDialogArgs, ()> for SettingDialog {
@@ -26,6 +55,11 @@ impl ui::PopupDialog<SettingDialogArgs, ()> for SettingDialog {
     fn init(&mut self) {
         self.c.name_input.set_text(&self.args.setting.name);
         self.c.current_value_input.set_text(&self.args.setting.setting);
+        self.c.new_value_input.set_text(&self.args.setting.setting);
+        let desc_text = ui::wrap_label_text(&self.args.setting.description, 65);
+        self.c.description_label.set_text(&desc_text);
+        self.c.change_button.set_enabled(false);
+        ui::shake_window(&self.c.window);
     }
 
     fn result(&mut self) -> () {

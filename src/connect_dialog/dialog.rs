@@ -6,33 +6,33 @@ pub struct ConnectDialog {
     pub(super) c: ConnectDialogControls,
 
     args: ConnectDialogArgs,
-    check_joiner: ui::PopupJoinHandle<ConnectCheckDialogResult>,
+    check_join_handle: ui::PopupJoinHandle<ConnectCheckDialogResult>,
 }
 
 impl ConnectDialog {
-    pub fn open_check_dialog(&mut self, _: nwg::EventData) {
+    pub(super) fn open_check_dialog(&mut self, _: nwg::EventData) {
         self.c.window.set_enabled(false);
         let config = self.config_from_input();
         let args = ConnectCheckDialogArgs::new(&self.c.check_notice, config);
-        self.check_joiner = ConnectCheckDialog::popup(args);
+        self.check_join_handle = ConnectCheckDialog::popup(args);
     }
 
-    pub fn await_check_dialog(&mut self, _: nwg::EventData) {
+    pub(super) fn await_check_dialog(&mut self, _: nwg::EventData) {
         self.c.window.set_enabled(true);
         self.c.check_notice.receive();
-        let _ = self.check_joiner.join();
+        let _ = self.check_join_handle.join();
         ui::shake_window(&self.c.window);
     }
 
-    pub fn on_port_input_changed(&mut self, _: nwg::EventData) {
+    pub(super) fn on_port_input_changed(&mut self, _: nwg::EventData) {
         self.correct_port_value();
     }
 
-    pub fn on_enable_tls_checkbox_changed(&mut self, _: nwg::EventData) {
+    pub(super) fn on_enable_tls_checkbox_changed(&mut self, _: nwg::EventData) {
         self.sync_tls_checkboxes_state();
     }
 
-    pub fn correct_port_value(&self) {
+    fn correct_port_value(&self) {
         let text = self.c.port_input.text();
         if text.len() == 0 {
             self.c.port_input.set_text("1");
@@ -50,7 +50,7 @@ impl ConnectDialog {
         }
     }
 
-    pub fn config_from_input(&self) -> PgConnConfig {
+    fn config_from_input(&self) -> PgConnConfig {
         let port = match self.c.port_input.text().parse::<u16>() {
             Ok(n) => n,
             Err(_) => 5432,
@@ -66,7 +66,7 @@ impl ConnectDialog {
         }
     }
 
-    pub fn config_to_input(&self, config: &PgConnConfig) {
+    fn config_to_input(&self, config: &PgConnConfig) {
         self.c.hostname_input.set_text(&config.hostname);
         self.c.port_input.set_text(&config.port.to_string());
         self.c.username_input.set_text(&config.username);
@@ -85,7 +85,7 @@ impl ConnectDialog {
         self.c.accept_invalid_tls_checkbox.set_check_state(accept_state);
     }
 
-    pub fn sync_tls_checkboxes_state(&self) {
+    fn sync_tls_checkboxes_state(&self) {
         let enabled = self.c.enable_tls_checkbox.check_state() == nwg::CheckBoxState::Checked;
         self.c.accept_invalid_tls_checkbox.set_enabled(enabled);
     }

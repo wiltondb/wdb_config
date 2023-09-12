@@ -7,7 +7,7 @@ pub(super) struct SettingDialogLayout {
     name_layout: nwg::FlexboxLayout,
     current_value_layout: nwg::FlexboxLayout,
     new_value_layout: nwg::FlexboxLayout,
-    spacer_layout: nwg::FlexboxLayout,
+    description_layout: nwg::FlexboxLayout,
     buttons_layout: nwg::FlexboxLayout,
 }
 
@@ -65,7 +65,16 @@ impl ui::Layout<SettingDialogControls> for SettingDialogLayout {
             .parent(&c.window)
             .flex_direction(ui::FlexDirection::Row)
             .auto_spacing(None)
-            .build_partial(&self.spacer_layout)?;
+            .child(&c.description_label)
+            .child_size(ui::size_builder()
+                .width_auto()
+                .height_input_form_row()
+                .build())
+            .child_margin(ui::margin_builder()
+                .top_pt(10)
+                .build())
+            .child_flex_grow(1.0)
+            .build_partial(&self.description_layout)?;
 
         nwg::FlexboxLayout::builder()
             .parent(&c.window)
@@ -74,7 +83,7 @@ impl ui::Layout<SettingDialogControls> for SettingDialogLayout {
             .auto_spacing(None)
             .child(&c.change_button)
             .child_size(ui::size_builder()
-                .width_button_normal()
+                .width_button_wide()
                 .height_button()
                 .build())
             .child(&c.close_button)
@@ -93,7 +102,7 @@ impl ui::Layout<SettingDialogControls> for SettingDialogLayout {
             .child_layout(&self.name_layout)
             .child_layout(&self.current_value_layout)
             .child_layout(&self.new_value_layout)
-            .child_layout(&self.spacer_layout)
+            .child_layout(&self.description_layout)
             .child_flex_grow(1.0)
             .child_layout(&self.buttons_layout)
             .build(&self.root_layout)?;

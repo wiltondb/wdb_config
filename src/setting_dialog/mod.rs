@@ -21,6 +21,9 @@ use ui::PopupJoinHandle;
 
 use common::PgConnConfig;
 use common::SettingRecord;
+use setting_change_dialog::SettingChangeDialog;
+use setting_change_dialog::SettingChangeDialogArgs;
+use setting_change_dialog::SettingChangeDialogResult;
 
 pub(super) use args::SettingDialogArgs;
 pub(super) use dialog::SettingDialog;
