@@ -25,7 +25,7 @@ use ui::PopupDialog;
 
 pub use args::LoadSettingsDialogArgs;
 use common::PgConnConfig;
-use common::PgConnError;
+use common::PgAccessError;
 use common::SettingRecord;
 pub(self) use controls::LoadSettingsDialogControls;
 pub use dialog::LoadSettingsDialog;

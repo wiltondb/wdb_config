@@ -21,6 +21,7 @@ use common::PgConnConfig;
 use common::SettingRecord;
 use connect_dialog::ConnectDialog;
 use connect_dialog::ConnectDialogArgs;
+use connect_dialog::ConnectDialogResult;
 use load_settings_dialog::LoadSettingsDialog;
 use load_settings_dialog::LoadSettingsDialogArgs;
 use load_settings_dialog::LoadSettingsDialogResult;

@@ -21,6 +21,8 @@ impl ConnectCheckDialog {
         };
         self.c.label.set_text(label);
         self.c.details_box.set_text(&res.message);
+        self.c.copy_clipboard_button.set_enabled(true);
+        self.c.close_button.set_enabled(true);
     }
 
     pub(super) fn copy_to_clipboard(&mut self, _: nwg::EventData) {
@@ -37,7 +39,7 @@ impl ConnectCheckDialog {
         }
     }
 
-    fn check_postgres_conn(pg_conn_config: &PgConnConfig) -> Result<String, PgConnError> {
+    fn check_postgres_conn(pg_conn_config: &PgConnConfig) -> Result<String, PgAccessError> {
         let mut client = pg_conn_config.open_connection()?;
         let vec = client.query("select version()", &[])?;
         let row = &vec[0];

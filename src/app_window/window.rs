@@ -20,7 +20,7 @@ pub struct AppWindow {
     escape_hatch_settings: HashSet<String>,
 
     about_dialog_join_handle: ui::PopupJoinHandle<()>,
-    connect_dialog_join_handle: ui::PopupJoinHandle<PgConnConfig>,
+    connect_dialog_join_handle: ui::PopupJoinHandle<ConnectDialogResult>,
     load_settings_dialog_join_handle: ui::PopupJoinHandle<LoadSettingsDialogResult>,
     setting_dialog_join_handle: ui::PopupJoinHandle<()>,
 }
@@ -74,9 +74,12 @@ impl AppWindow {
     pub(super) fn await_connect_dialog(&mut self, _: nwg::EventData) {
         self.c.window.set_enabled(true);
         self.c.connect_notice.receive();
-        self.pg_conn_config = self.connect_dialog_join_handle.join();
-        self.set_status_bar_hostname(&self.pg_conn_config.hostname);
-        self.open_load_dialog(nwg::EventData::NoData);
+        let res = self.connect_dialog_join_handle.join();
+        if res.load_settings_requested {
+            self.pg_conn_config = res.pg_conn_config;
+            self.set_status_bar_hostname(&self.pg_conn_config.hostname);
+            self.open_load_dialog(nwg::EventData::NoData);
+        }
     }
 
     pub(super) fn open_load_dialog(&mut self, _: nwg::EventData) {

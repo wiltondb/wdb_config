@@ -12,7 +12,7 @@ pub struct SettingDialog {
 impl SettingDialog {
    pub(super) fn open_change_dialog(&mut self, _: nwg::EventData) {
        self.c.window.set_enabled(false);
-       let value = self.c.new_value_input.text();
+       let value = self.c.new_value_input.text().trim().to_string();
        let args = SettingChangeDialogArgs::new(
            &self.c.change_notice, self.args.pg_conn_config.clone(),
             self.args.setting.name.clone(), value);

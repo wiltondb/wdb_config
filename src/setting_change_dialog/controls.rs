@@ -7,7 +7,9 @@ pub(super) struct SettingChangeDialogControls {
 
     pub(super) font_normal: nwg::Font,
 
+    pub(super) icon: nwg::Icon,
     pub(super) window: nwg::Window,
+
     pub(super) progress_bar: nwg::ProgressBar,
     pub(super) label: nwg::Label,
     pub(super) details_box: nwg::TextBox,
@@ -25,10 +27,17 @@ impl ui::Controls for SettingChangeDialogControls {
                 .build())
             .build(&mut self.font_normal)?;
 
+        nwg::Icon::builder()
+            .source_embed(Some(&nwg::EmbedResource::load(None)
+                .expect("Error loading embedded resource")))
+            .source_embed_id(2)
+            .build(&mut self.icon)?;
+
         nwg::Window::builder()
             .size((320, 200))
+            .icon(Some(&self.icon))
             .center(true)
-            .title("Apply setting change")
+            .title("Apply Setting Change")
             .build(&mut self.window)?;
 
         nwg::ProgressBar::builder()
@@ -56,12 +65,14 @@ impl ui::Controls for SettingChangeDialogControls {
 
         nwg::Button::builder()
             .text("Copy to clipboard")
+            .enabled(false)
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.copy_clipboard_button)?;
 
         nwg::Button::builder()
             .text("Close")
+            .enabled(false)
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.close_button)?;

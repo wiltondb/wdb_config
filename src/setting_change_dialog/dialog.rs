@@ -1,6 +1,4 @@
 
-use uuid::Uuid;
-
 use super::*;
 
 #[derive(Default)]
@@ -19,25 +17,30 @@ impl SettingChangeDialog {
         self.stop_progress_bar(res.success);
         if res.success {
             self.result = SettingChangeDialogResult::success(res.effective_value.clone());
-            self.c.label.set_text("Setting change successful");
-            let msg = format!("DB configuration reload requested,\
-\r\napplied value: [{}],\
-\r\neffective value: [{}],\
-\r\nDB restart required: [{}].", &self.args.value, res.effective_value, res.restart_pending);
+            self.c.label.set_text("Setting changed successfully");
+            let restart_label = if res.restart_pending {
+                "YES"
+            } else {
+                "no"
+            };
+            let msg = format!("DB configuration reloaded with pg_reload_conf():\
+\r\n - applied value: {}\
+\r\n - effective value: {}\
+\r\n - DB restart required: {}", &self.args.value, res.effective_value, restart_label);
             self.c.details_box.set_text(&msg);
         } else {
             self.result = SettingChangeDialogResult::failure();
             self.c.label.set_text("Setting change failed");
             self.c.details_box.set_text(&res.error);
         }
+        self.c.copy_clipboard_button.set_enabled(true);
+        self.c.close_button.set_enabled(true);
     }
 
     pub(super) fn copy_to_clipboard(&mut self, _: nwg::EventData) {
         let text = self.c.details_box.text();
         let _ = set_clipboard(formats::Unicode, &text);
     }
-
-    pub(super)
 
     fn stop_progress_bar(&self, success: bool) {
         self.c.progress_bar.set_marquee(false, 0);
@@ -48,22 +51,22 @@ impl SettingChangeDialog {
         }
     }
 
-    fn apply_change(pg_conn_config: &PgConnConfig, name: &str, value: &str) -> Result<ChangeResult, PgConnError> {
+    fn apply_change(pg_conn_config: &PgConnConfig, name: &str, value: &str) -> Result<ChangeResult, PgAccessError> {
         let mut client = pg_conn_config.open_connection()?;
         // syntax error at or near "$1"
-        let uid = format!("_{}", Uuid::new_v4()).replace("-", "_");
-        let sql = format!("alter system set {} = ${}${}${}$", name, uid, value, uid);
+        let quoted = pg_sql_utils::quote_parameter(value);
+        let sql = format!("alter system set {} = {}", name, quoted);
         client.execute(&sql, &[])?;
-        client.execute("select pg_reload_conf()", &[])?;
+        pg_sql_utils::reload_settings_sync(&mut client, 3000)?;
         let vec_eff = client.query(&format!("show {}", name), &[])?;
         let sql_pending = format!("select pending_restart from pg_settings where name = $1");
         let vec_pending = client.query(&sql_pending, &[&name])?;
         client.close()?;
         if 0 == vec_eff.len() {
-            return Err(PgConnError::from_string("Effective value fetch error".to_string()))
+            return Err(PgAccessError::from_string("Effective value fetch error".to_string()))
         }
         if 0 == vec_pending.len() {
-            return Err(PgConnError::from_string("Restart pending flag fetch error".to_string()))
+            return Err(PgAccessError::from_string("Restart pending flag fetch error".to_string()))
         }
         let pending: bool = vec_pending[0].get(0);
         let eff: String = vec_eff[0].get(0);

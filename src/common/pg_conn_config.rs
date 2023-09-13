@@ -20,7 +20,7 @@ pub struct PgConnConfig {
 }
 
 impl PgConnConfig {
-    pub fn open_connection(&self) -> Result<Client, PgConnError> {
+    pub fn open_connection(&self) -> Result<Client, PgAccessError> {
         let conf = Config::new()
             .host(&self.hostname)
             .port(self.port)

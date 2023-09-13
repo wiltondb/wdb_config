@@ -25,8 +25,8 @@ impl<T: Sync + Send + Default> SyncNoticeValueSender<T> {
 
     pub fn send_result(&self, t: T) {
         self.sender.as_ref().expect("Sender not initialized").notice();
-        self.tx.as_ref().expect("Sender not initialized")
-            .send(t).expect("Notice send failure");
+        // best effort, receiver may have been destroyed already
+        let _ = self.tx.as_ref().expect("Sender not initialized").send(t);
     }
 }
 
@@ -35,8 +35,10 @@ pub struct SyncNoticeValue<T: Sync + Send + Default> {
     pub notice: nwg::Notice,
     tx: Option<SyncSender<T>>,
     rx: Option<Receiver<T>>,
+    receive_count: usize,
 }
 
+#[allow(dead_code)]
 impl<T: Sync + Send + Default> SyncNoticeValue<T> {
 
     pub fn sender(&self) -> SyncNoticeValueSender<T> {
@@ -46,9 +48,15 @@ impl<T: Sync + Send + Default> SyncNoticeValue<T> {
         }
     }
 
-    pub fn receive(&self) -> T {
-        self.rx.as_ref().expect("Notice not initalized")
-            .recv().expect("Notice receive failure")
+    pub fn receive(&mut self) -> T {
+        let res = self.rx.as_ref().expect("Notice not initialized")
+            .recv().expect("Notice receive failure");
+        self.receive_count += 1;
+        res
+    }
+
+    pub fn receive_count(&self) -> usize {
+        self.receive_count
     }
 }
 
@@ -81,6 +89,8 @@ impl SyncNoticeBuilder {
         let (tx, rx) = sync_channel::<T>(0);
         out.tx = Some(tx);
         out.rx = Some(rx);
+
+        out.receive_count = 0;
 
         Ok(())
     }

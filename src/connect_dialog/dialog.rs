@@ -6,6 +6,7 @@ pub struct ConnectDialog {
     pub(super) c: ConnectDialogControls,
 
     args: ConnectDialogArgs,
+    result: ConnectDialogResult,
     check_join_handle: ui::PopupJoinHandle<ConnectCheckDialogResult>,
 }
 
@@ -30,6 +31,12 @@ impl ConnectDialog {
 
     pub(super) fn on_enable_tls_checkbox_changed(&mut self, _: nwg::EventData) {
         self.sync_tls_checkboxes_state();
+    }
+
+    pub(super) fn on_load_button(&mut self, _: nwg::EventData) {
+        let pg_conf = self.config_from_input();
+        self.result = ConnectDialogResult::new(pg_conf);
+        self.close(nwg::EventData::NoData);
     }
 
     fn correct_port_value(&self) {
@@ -91,8 +98,8 @@ impl ConnectDialog {
     }
 }
 
-impl ui::PopupDialog<ConnectDialogArgs, PgConnConfig> for ConnectDialog {
-    fn popup(args: ConnectDialogArgs) -> ui::PopupJoinHandle<PgConnConfig> {
+impl ui::PopupDialog<ConnectDialogArgs, ConnectDialogResult> for ConnectDialog {
+    fn popup(args: ConnectDialogArgs) -> ui::PopupJoinHandle<ConnectDialogResult> {
         let join_handle = thread::spawn(move || {
             let data = Self {
                 args,
@@ -107,11 +114,12 @@ impl ui::PopupDialog<ConnectDialogArgs, PgConnConfig> for ConnectDialog {
 
     fn init(&mut self) {
         self.config_to_input(&self.args.pg_conn_config);
+        self.result = ConnectDialogResult::cancelled();
         ui::shake_window(&self.c.window);
     }
 
-    fn result(&mut self) -> PgConnConfig {
-        self.config_from_input()
+    fn result(&mut self) -> ConnectDialogResult {
+        self.result.clone()
     }
 
     fn close(&mut self, _: nwg::EventData) {

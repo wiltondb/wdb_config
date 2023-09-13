@@ -11,7 +11,7 @@ pub(super) struct ConnectDialogNui {
 }
 
 impl ConnectDialogNui {
-    pub(super) fn result(&mut self) -> PgConnConfig {
+    pub(super) fn result(&mut self) -> ConnectDialogResult{
         self.inner.borrow_mut().result()
     }
 }

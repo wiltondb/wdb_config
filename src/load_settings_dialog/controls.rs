@@ -7,7 +7,9 @@ pub(super) struct LoadSettingsDialogControls {
 
     pub(super) font_normal: nwg::Font,
 
+    pub(super) icon: nwg::Icon,
     pub(super) window: nwg::Window,
+
     pub(super) progress_bar: nwg::ProgressBar,
     pub(super) label: nwg::Label,
     pub(super) details_box: nwg::TextBox,
@@ -25,10 +27,17 @@ impl ui::Controls for LoadSettingsDialogControls {
                 .build())
             .build(&mut self.font_normal)?;
 
+        nwg::Icon::builder()
+            .source_embed(Some(&nwg::EmbedResource::load(None)
+                .expect("Error loading embedded resource")))
+            .source_embed_id(2)
+            .build(&mut self.icon)?;
+
         nwg::Window::builder()
             .size((320, 200))
+            .icon(Some(&self.icon))
             .center(true)
-            .title("Check")
+            .title("Load Settings")
             .build(&mut self.window)?;
 
         nwg::ProgressBar::builder()
@@ -57,12 +66,14 @@ impl ui::Controls for LoadSettingsDialogControls {
         nwg::Button::builder()
             .text("Copy to clipboard")
             .font(Some(&self.font_normal))
+            .enabled(false)
             .parent(&self.window)
             .build(&mut self.copy_clipboard_button)?;
 
         nwg::Button::builder()
             .text("Close")
             .font(Some(&self.font_normal))
+            .enabled(false)
             .parent(&self.window)
             .build(&mut self.close_button)?;
 

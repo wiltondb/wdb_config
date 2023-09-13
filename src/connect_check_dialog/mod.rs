@@ -22,7 +22,7 @@ use ui::Events;
 use ui::Layout;
 use ui::PopupDialog;
 use common::PgConnConfig;
-use common::PgConnError;
+use common::PgAccessError;
 
 pub use args::ConnectCheckDialogArgs;
 pub(self) use controls::ConnectCheckDialogControls;

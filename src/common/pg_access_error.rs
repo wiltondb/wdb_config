@@ -2,11 +2,11 @@
 use std::fmt;
 
 #[derive(Debug)]
-pub struct PgConnError {
+pub struct PgAccessError {
     message: String
 }
 
-impl PgConnError {
+impl PgAccessError {
     pub fn new<E: fmt::Display>(e: &E) -> Self {
         Self {
             message: format!("{}", e)
@@ -20,20 +20,26 @@ impl PgConnError {
     }
 }
 
-impl fmt::Display for PgConnError {
+impl fmt::Display for PgAccessError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.message)
     }
 }
 
-impl From<postgres::Error> for PgConnError {
+impl From<postgres::Error> for PgAccessError {
     fn from(value: postgres::Error) -> Self {
         Self::new(&value)
     }
 }
 
-impl From<native_tls::Error> for PgConnError {
+impl From<native_tls::Error> for PgAccessError {
     fn from(value: native_tls::Error) -> Self {
+        Self::new(&value)
+    }
+}
+
+impl From<&str> for PgAccessError {
+    fn from(value: &str) -> Self {
         Self::new(&value)
     }
 }

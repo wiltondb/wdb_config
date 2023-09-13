@@ -33,7 +33,13 @@ impl ui::Events<ConnectDialogControls> for ConnectDialogEvents {
             .build(&mut self.events)?;
 
         ui::event_builder()
-            .control(&c.close_button)
+            .control(&c.load_button)
+            .event(nwg::Event::OnButtonClick)
+            .handler(ConnectDialog::on_load_button)
+            .build(&mut self.events)?;
+
+        ui::event_builder()
+            .control(&c.cancel_button)
             .event(nwg::Event::OnButtonClick)
             .handler(ConnectDialog::close)
             .build(&mut self.events)?;

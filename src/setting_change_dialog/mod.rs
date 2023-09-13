@@ -22,7 +22,8 @@ use ui::Events;
 use ui::Layout;
 use ui::PopupDialog;
 use common::PgConnConfig;
-use common::PgConnError;
+use common::PgAccessError;
+use common::pg_sql_utils;
 
 pub use args::SettingChangeDialogArgs;
 pub(self) use controls::SettingChangeDialogControls;

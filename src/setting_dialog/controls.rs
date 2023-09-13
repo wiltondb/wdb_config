@@ -7,6 +7,7 @@ pub(super) struct SettingDialogControls {
 
     pub(super) font_normal: nwg::Font,
 
+    pub(super) icon: nwg::Icon,
     pub(super) window: nwg::Window,
 
     pub(super) name_label: nwg::Label,
@@ -31,10 +32,17 @@ impl ui::Controls for SettingDialogControls {
                 .build())
             .build(&mut self.font_normal)?;
 
+        nwg::Icon::builder()
+            .source_embed(Some(&nwg::EmbedResource::load(None)
+                .expect("Error loading embedded resource")))
+            .source_embed_id(2)
+            .build(&mut self.icon)?;
+
         nwg::Window::builder()
             .size((480, 200))
+            .icon(Some(&self.icon))
             .center(true)
-            .title("Change setting")
+            .title("Change Setting")
             .build(&mut self.window)?;
 
         nwg::Label::builder()

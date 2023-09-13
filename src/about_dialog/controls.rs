@@ -7,7 +7,9 @@ pub(super) struct AboutDialogControls {
 
     pub(super) font_normal: nwg::Font,
 
+    pub(super) icon: nwg::Icon,
     pub(super) window: nwg::Window,
+
     pub(super) label: nwg::Label,
     pub(super) close_button: nwg::Button,
 }
@@ -20,8 +22,15 @@ impl ui::Controls for AboutDialogControls {
                 .build())
             .build(&mut self.font_normal)?;
 
+        nwg::Icon::builder()
+            .source_embed(Some(&nwg::EmbedResource::load(None)
+                .expect("Error loading embedded resource")))
+            .source_embed_id(2)
+            .build(&mut self.icon)?;
+
         nwg::Window::builder()
             .size((320, 200))
+            .icon(Some(&self.icon))
             .center(true)
             .title("About")
             .build(&mut self.window)?;

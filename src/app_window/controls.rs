@@ -8,6 +8,7 @@ pub(super) struct AppWindowControls {
     pub(super) font_normal: nwg::Font,
     pub(super) font_small: nwg::Font,
 
+    pub(super) icon: nwg::Icon,
     pub(super) window: nwg::Window,
 
     pub(super) file_menu: nwg::Menu,
@@ -48,8 +49,15 @@ impl ui::Controls for AppWindowControls {
 
         // window
 
+        nwg::Icon::builder()
+            .source_embed(Some(&nwg::EmbedResource::load(None)
+                .expect("Error loading embedded resource")))
+            .source_embed_id(2)
+            .build(&mut self.icon)?;
+
         nwg::Window::builder()
             .size((640, 480))
+            .icon(Some(&self.icon))
             .center(true)
             .title("WiltonDB Configuration Tool")
             .build(&mut self.window)?;
@@ -139,7 +147,7 @@ impl ui::Controls for AppWindowControls {
         // buttons
 
         nwg::Button::builder()
-            .text("Load settings")
+            .text("Reload settings")
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.reload_button)?;

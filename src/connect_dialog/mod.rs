@@ -5,6 +5,7 @@ mod dialog;
 mod events;
 mod layout;
 mod nui;
+mod result;
 
 use std::thread;
 
@@ -27,3 +28,4 @@ pub(self) use controls::ConnectDialogControls;
 pub use dialog::ConnectDialog;
 use events::ConnectDialogEvents;
 use layout::ConnectDialogLayout;
+pub use result::ConnectDialogResult;

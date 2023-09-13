@@ -22,6 +22,8 @@ impl LoadSettingsDialog {
         }
         self.c.label.set_text("Load settings failed");
         self.c.details_box.set_text(&res.message);
+        self.c.copy_clipboard_button.set_enabled(true);
+        self.c.close_button.set_enabled(true);
     }
 
     pub fn copy_to_clipboard(&mut self, _: nwg::EventData) {
@@ -38,7 +40,7 @@ impl LoadSettingsDialog {
         }
     }
 
-    fn load_settings_from_db(pg_conn_config: &PgConnConfig) -> Result<Vec<SettingRecord>, PgConnError> {
+    fn load_settings_from_db(pg_conn_config: &PgConnConfig) -> Result<Vec<SettingRecord>, PgAccessError> {
         let mut client = pg_conn_config.open_connection()?;
         let vec = client.query("show all", &[])?;
         client.close()?;

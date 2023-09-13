@@ -7,7 +7,9 @@ pub(super) struct ConnectDialogControls {
 
     pub(super) font_normal: nwg::Font,
 
+    pub(super) icon: nwg::Icon,
     pub(super) window: nwg::Window,
+
     pub(super) hostname_label: nwg::Label,
     pub(super) hostname_input: nwg::TextInput,
     pub(super) port_label: nwg::Label,
@@ -20,7 +22,8 @@ pub(super) struct ConnectDialogControls {
     pub(super) accept_invalid_tls_checkbox: nwg::CheckBox,
 
     pub(super) test_button: nwg::Button,
-    pub(super) close_button: nwg::Button,
+    pub(super) load_button: nwg::Button,
+    pub(super) cancel_button: nwg::Button,
 
     pub(super) check_notice: ui::SyncNotice,
 }
@@ -34,10 +37,17 @@ impl ui::Controls for ConnectDialogControls {
                 .build())
             .build(&mut self.font_normal)?;
 
+        nwg::Icon::builder()
+            .source_embed(Some(&nwg::EmbedResource::load(None)
+                .expect("Error loading embedded resource")))
+            .source_embed_id(2)
+            .build(&mut self.icon)?;
+
         nwg::Window::builder()
             .size((480, 240))
+            .icon(Some(&self.icon))
             .center(true)
-            .title("Connect")
+            .title("DB Connection")
             .build(&mut self.window)?;
 
         nwg::Label::builder()
@@ -47,7 +57,6 @@ impl ui::Controls for ConnectDialogControls {
             .parent(&self.window)
             .build(&mut self.hostname_label)?;
         nwg::TextInput::builder()
-            .text("&args.config.hostname")
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.hostname_input)?;
@@ -58,7 +67,6 @@ impl ui::Controls for ConnectDialogControls {
             .parent(&self.window)
             .build(&mut self.port_label)?;
         nwg::TextInput::builder()
-            .text("&args.config.port.to_string()")
             .flags(nwg::TextInputFlags::VISIBLE | nwg::TextInputFlags::NUMBER)
             .font(Some(&self.font_normal))
             .parent(&self.window)
@@ -70,7 +78,6 @@ impl ui::Controls for ConnectDialogControls {
             .parent(&self.window)
             .build(&mut self.username_label)?;
         nwg::TextInput::builder()
-            .text("&args.config.username")
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.username_input)?;
@@ -82,18 +89,15 @@ impl ui::Controls for ConnectDialogControls {
             .build(&mut self.password_label)?;
         nwg::TextInput::builder()
             .password(Some('*'))
-            .text("&args.config.password")
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.password_input)?;
-        // todo
         nwg::CheckBox::builder()
             .check_state(nwg::CheckBoxState::Checked)
             .text("Enable TLS")
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.enable_tls_checkbox)?;
-        // todo
         nwg::CheckBox::builder()
             .check_state(nwg::CheckBoxState::Checked)
             .text("Accept invalid TLS certificates/hosts")
@@ -102,16 +106,22 @@ impl ui::Controls for ConnectDialogControls {
             .build(&mut self.accept_invalid_tls_checkbox)?;
 
         nwg::Button::builder()
-            .text("Test")
+            .text("Test connection")
             .font(Some(&self.font_normal))
             .parent(&self.window)
             .build(&mut self.test_button)?;
 
         nwg::Button::builder()
-            .text("Close")
+            .text("Load settings")
             .font(Some(&self.font_normal))
             .parent(&self.window)
-            .build(&mut self.close_button)?;
+            .build(&mut self.load_button)?;
+
+        nwg::Button::builder()
+            .text("Cancel")
+            .font(Some(&self.font_normal))
+            .parent(&self.window)
+            .build(&mut self.cancel_button)?;
 
         ui::notice_builder()
             .parent(&self.window)
