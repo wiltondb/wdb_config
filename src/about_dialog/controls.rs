@@ -29,14 +29,14 @@ impl ui::Controls for AboutDialogControls {
             .build(&mut self.icon)?;
 
         nwg::Window::builder()
-            .size((320, 200))
+            .size((320, 120))
             .icon(Some(&self.icon))
             .center(true)
             .title("About")
             .build(&mut self.window)?;
 
         nwg::Label::builder()
-            .text("Very long label label label label label label label label \r\n will eventually go here")
+            .text(&format!("Configuration tool for WiltonDB.\r\nVersion {}.", labels::VERSION))
             .h_align(nwg::HTextAlign::Center)
             .v_align(nwg::VTextAlign::Top)
             .font(Some(&self.font_normal))

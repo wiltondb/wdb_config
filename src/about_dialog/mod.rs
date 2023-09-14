@@ -17,6 +17,7 @@ use ui::Events;
 use ui::Layout;
 use ui::PopupArgs;
 use ui::PopupDialog;
+use common::labels;
 
 pub use args::AboutDialogArgs;
 pub(self) use controls::AboutDialogControls;

@@ -1,4 +1,5 @@
 
+use std::env;
 use std::os::windows::process::CommandExt;
 use std::process::Command;
 use std::process::Stdio;
@@ -32,20 +33,27 @@ impl AppWindow {
     }
 
     pub(super) fn init(&mut self) {
-        self.pg_conn_config.hostname = String::from("localhost");
-        self.pg_conn_config.port = 5432;
-        self.pg_conn_config.username = String::from("wilton");
-        // todo: removeme
-        self.pg_conn_config.password = String::from("wilton");
-        self.pg_conn_config.enable_tls = true;
-        self.pg_conn_config.accept_invalid_tls = true;
-
         self.networking_settings = setting_groups::networking();
         self.logging_settings = setting_groups::logging();
         self.memory_settings = setting_groups::memory();
         self.escape_hatch_settings = setting_groups::escape_hatches();
 
-        self.open_connect_dialog(nwg::EventData::NoData);
+        let cmd_args = Self::get_cmd_args();
+        if 2 == cmd_args.len() && "--postinstall" == cmd_args[1] {
+            self.pg_conn_config.hostname = String::from("localhost");
+            self.pg_conn_config.port = 5432;
+            self.pg_conn_config.username = String::from("wilton");
+            self.pg_conn_config.password = String::from("wilton");
+            self.pg_conn_config.enable_tls = true;
+            self.pg_conn_config.accept_invalid_tls = true;
+            self.set_status_bar_dbconn_label("localhost:5432");
+            self.open_load_dialog(nwg::EventData::NoData);
+        } else {
+            self.pg_conn_config.hostname = String::from("localhost");
+            self.pg_conn_config.port = 5432;
+            self.set_status_bar_dbconn_label("none");
+            self.open_connect_dialog(nwg::EventData::NoData);
+        }
     }
 
     pub(super) fn close(&mut self, _: nwg::EventData) {
@@ -63,6 +71,7 @@ impl AppWindow {
         self.c.window.set_enabled(true);
         self.c.about_notice.receive();
         let _ = self.about_dialog_join_handle.join();
+        self.c.filter_input.set_enabled(true);
     }
 
     pub(super) fn open_connect_dialog(&mut self, _: nwg::EventData) {
@@ -77,8 +86,12 @@ impl AppWindow {
         let res = self.connect_dialog_join_handle.join();
         if res.load_settings_requested {
             self.pg_conn_config = res.pg_conn_config;
-            self.set_status_bar_hostname(&self.pg_conn_config.hostname);
+            let sbar_label = format!(
+                "{}:{}", &self.pg_conn_config.hostname, &self.pg_conn_config.port);
+            self.set_status_bar_dbconn_label(&sbar_label);
             self.open_load_dialog(nwg::EventData::NoData);
+        } else {
+            self.c.filter_input.set_enabled(true);
         }
     }
 
@@ -179,8 +192,19 @@ impl AppWindow {
         self.reload_settings_view()
     }
 
-    fn set_status_bar_hostname(&self, text: &str) {
-        self.c.status_bar.set_text(0, &format!("  DB host: {}", text));
+    fn get_cmd_args() -> Vec<String> {
+        let mut res = vec!();
+        for aos in env::args_os() {
+            match aos.into_string() {
+                Ok(st) => res.push(st),
+                Err(_) => {/* ignore */}
+            }
+        };
+        res
+    }
+
+    fn set_status_bar_dbconn_label(&self, text: &str) {
+        self.c.status_bar.set_text(0, &format!("  DB connection: {}", text));
     }
 
     fn setting_matches_filters(&self, name: &str) -> bool {

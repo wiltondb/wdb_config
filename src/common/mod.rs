@@ -1,4 +1,5 @@
 
+pub mod labels;
 mod pg_conn_config;
 mod pg_access_error;
 pub mod pg_sql_utils;

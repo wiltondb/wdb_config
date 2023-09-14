@@ -70,7 +70,7 @@ impl ui::Controls for AppWindowControls {
             .build(&mut self.file_menu)?;
         nwg::MenuItem::builder()
             .parent(&self.file_menu)
-            .text("Connect to DB")
+            .text("DB Connection")
             .build(&mut self.file_connect_menu_item)?;
         nwg::MenuItem::builder()
             .parent(&self.file_menu)
@@ -161,7 +161,6 @@ impl ui::Controls for AppWindowControls {
 
         nwg::StatusBar::builder()
             .parent(&self.window)
-            .text("  DB host: none")
             .font(Some(&self.font_small))
             .build(&mut self.status_bar)?;
 
