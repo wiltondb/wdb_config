@@ -13,6 +13,11 @@ impl ui::Events<AboutDialogControls> for AboutDialogEvents {
             .event(nwg::Event::OnWindowClose)
             .handler(AboutDialog::close)
             .build(&mut self.events)?;
+        ui::event_builder()
+            .control(&c.window)
+            .event(nwg::Event::OnResizeEnd)
+            .handler(AboutDialog::on_resize)
+            .build(&mut self.events)?;
 
         ui::event_builder()
             .control(&c.close_button)

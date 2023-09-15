@@ -143,6 +143,7 @@ impl AppWindow {
         self.c.window.set_enabled(true);
         self.c.setting_notice.receive();
         let _ = self.setting_dialog_join_handle.join();
+        self.c.filter_input.set_enabled(true);
     }
 
     pub(super) fn open_website(&mut self, _: nwg::EventData) {
@@ -190,6 +191,10 @@ impl AppWindow {
 
     pub(super) fn on_filter_combo(&mut self, _: nwg::EventData) {
         self.reload_settings_view()
+    }
+
+    pub(super) fn on_resize(&mut self, _: nwg::EventData) {
+        self.c.update_tab_order();
     }
 
     fn get_cmd_args() -> Vec<String> {

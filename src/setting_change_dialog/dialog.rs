@@ -1,5 +1,6 @@
 
 use super::*;
+use nwg::EventData;
 
 #[derive(Default)]
 pub struct SettingChangeDialog {
@@ -117,5 +118,9 @@ impl ui::PopupDialog<SettingChangeDialogArgs, SettingChangeDialogResult> for Set
         self.args.send_notice();
         self.c.window.set_visible(false);
         nwg::stop_thread_dispatch();
+    }
+
+    fn on_resize(&mut self, _: EventData) {
+        self.c.update_tab_order();
     }
 }

@@ -102,4 +102,14 @@ impl ui::Controls for SettingDialogControls {
 
         Ok(())
     }
+
+    fn update_tab_order(&self) {
+        ui::tab_order_builder()
+            .control(&self.name_input)
+            .control(&self.current_value_input)
+            .control(&self.new_value_input)
+            .control(&self.change_button)
+            .control(&self.close_button)
+            .build();
+    }
 }

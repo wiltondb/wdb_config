@@ -13,6 +13,16 @@ impl ui::Events<AppWindowControls> for AppWindowEvents {
             .event(nwg::Event::OnWindowClose)
             .handler(AppWindow::close)
             .build(&mut self.events)?;
+        ui::event_builder()
+            .control(&c.window)
+            .event(nwg::Event::OnResizeEnd)
+            .handler(AppWindow::on_resize)
+            .build(&mut self.events)?;
+        ui::event_builder()
+            .control(&c.window)
+            .event(nwg::Event::OnKeyEnter)
+            .handler(AppWindow::on_filter_button)
+            .build(&mut self.events)?;
 
         ui::event_builder()
             .control(&c.file_connect_menu_item)

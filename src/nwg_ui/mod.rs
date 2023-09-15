@@ -10,6 +10,7 @@ mod popup_dialog;
 mod popup_join_handle;
 mod size_builder;
 mod sync_notice;
+mod tab_order_builder;
 
 pub use nwg::stretch::style::AlignSelf;
 pub use nwg::stretch::style::JustifyContent;
@@ -32,6 +33,7 @@ use font_size_builder::FontSizeBuilder;
 use margin_builder::MarginBuilder;
 use size_builder::SizeBuilder;
 use sync_notice::SyncNoticeBuilder;
+use tab_order_builder::TabOrderBuilder;
 
 pub fn size_builder() -> SizeBuilder {
     Default::default()
@@ -51,6 +53,10 @@ pub fn event_builder<W>() -> EventBuilder<W> {
 
 pub fn notice_builder() -> SyncNoticeBuilder {
     SyncNoticeBuilder::new()
+}
+
+pub fn tab_order_builder() -> TabOrderBuilder {
+    TabOrderBuilder::new()
 }
 
 pub fn shake_window(window: &nwg::Window) {

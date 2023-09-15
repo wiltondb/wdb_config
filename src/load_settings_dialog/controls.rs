@@ -85,4 +85,12 @@ impl ui::Controls for LoadSettingsDialogControls {
 
         Ok(())
     }
+
+    fn update_tab_order(&self) {
+        ui::tab_order_builder()
+            .control(&self.details_box)
+            .control(&self.copy_clipboard_button)
+            .control(&self.close_button)
+            .build();
+    }
 }

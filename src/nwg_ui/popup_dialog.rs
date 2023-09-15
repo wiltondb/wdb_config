@@ -9,4 +9,6 @@ pub trait PopupDialog<A: PopupArgs, R> {
     fn result(&mut self) -> R;
 
     fn close(&mut self, _: nwg::EventData);
+
+    fn on_resize(&mut self, _: nwg::EventData);
 }

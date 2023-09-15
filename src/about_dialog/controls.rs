@@ -53,4 +53,8 @@ impl ui::Controls for AboutDialogControls {
 
         Ok(())
     }
+
+    fn update_tab_order(&self) {
+        ()
+    }
 }

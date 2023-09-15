@@ -1,5 +1,6 @@
 
 use super::*;
+use nwg::EventData;
 
 #[derive(Default)]
 pub struct SettingDialog {
@@ -27,6 +28,7 @@ impl SettingDialog {
             self.c.current_value_input.set_text(&res.effective_value);
         }
         ui::shake_window(&self.c.window);
+        self.c.update_tab_order();
     }
 
     pub(super) fn on_new_value_change(&mut self, _: nwg::EventData) {
@@ -70,5 +72,9 @@ impl ui::PopupDialog<SettingDialogArgs, ()> for SettingDialog {
         self.args.notify_parent();
         self.c.window.set_visible(false);
         nwg::stop_thread_dispatch();
+    }
+
+    fn on_resize(&mut self, _: EventData) {
+        self.c.update_tab_order();
     }
 }

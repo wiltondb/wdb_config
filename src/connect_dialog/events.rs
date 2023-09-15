@@ -13,6 +13,11 @@ impl ui::Events<ConnectDialogControls> for ConnectDialogEvents {
             .event(nwg::Event::OnWindowClose)
             .handler(ConnectDialog::close)
             .build(&mut self.events)?;
+        ui::event_builder()
+            .control(&c.window)
+            .event(nwg::Event::OnResizeEnd)
+            .handler(ConnectDialog::on_resize)
+            .build(&mut self.events)?;
 
         ui::event_builder()
             .control(&c.port_input)

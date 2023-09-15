@@ -1,5 +1,6 @@
 
 use super::*;
+use nwg::EventData;
 
 #[derive(Default)]
 pub struct ConnectDialog {
@@ -23,6 +24,7 @@ impl ConnectDialog {
         self.c.check_notice.receive();
         let _ = self.check_join_handle.join();
         ui::shake_window(&self.c.window);
+        self.c.update_tab_order();
     }
 
     pub(super) fn on_port_input_changed(&mut self, _: nwg::EventData) {
@@ -126,5 +128,9 @@ impl ui::PopupDialog<ConnectDialogArgs, ConnectDialogResult> for ConnectDialog {
         self.args.notify_parent();
         self.c.window.set_visible(false);
         nwg::stop_thread_dispatch();
+    }
+
+    fn on_resize(&mut self, _: EventData) {
+        self.c.update_tab_order();
     }
 }

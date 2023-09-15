@@ -105,9 +105,11 @@ impl ui::Controls for AppWindowControls {
             .selected_index(Some(0))
             .build(&mut self.filter_combo)?;
         nwg::TextInput::builder()
+            .placeholder_text(Some("Search by setting name with '*' and '?' wildcards"))
             .parent(&self.window)
             .font(Some(&self.font_normal))
             .build(&mut self.filter_input)?;
+
         nwg::Button::builder()
             .parent(&self.window)
             .font(Some(&self.font_normal))
@@ -180,5 +182,15 @@ impl ui::Controls for AppWindowControls {
         self.layout.build(&self)?;
 
         Ok(())
+    }
+
+    fn update_tab_order(&self) {
+        ui::tab_order_builder()
+            .control(&self.filter_combo)
+            .control(&self.filter_input)
+            .control(&self.filter_button)
+            .control(&self.reload_button)
+            .control(&self.close_button)
+            .build();
     }
 }

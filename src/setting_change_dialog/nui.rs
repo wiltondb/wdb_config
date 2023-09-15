@@ -22,6 +22,7 @@ impl nwg::NativeUi<SettingChangeDialogNui> for SettingChangeDialog {
         dialog.c.build()?;
         events.build(&dialog.c)?;
         dialog.init();
+        dialog.c.update_tab_order();
 
         let window_handle = dialog.c.window.handle.clone();
 

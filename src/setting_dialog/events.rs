@@ -10,6 +10,17 @@ pub(super) struct SettingDialogEvents {
 impl ui::Events<SettingDialogControls> for SettingDialogEvents {
     fn build(&mut self, c: &SettingDialogControls) -> Result<(), NwgError> {
         ui::event_builder()
+            .control(&c.window)
+            .event(nwg::Event::OnWindowClose)
+            .handler(SettingDialog::close)
+            .build(&mut self.events)?;
+        ui::event_builder()
+            .control(&c.window)
+            .event(nwg::Event::OnResizeEnd)
+            .handler(SettingDialog::on_resize)
+            .build(&mut self.events)?;
+
+        ui::event_builder()
             .control(&c.change_button)
             .event(nwg::Event::OnButtonClick)
             .handler(SettingDialog::open_change_dialog)

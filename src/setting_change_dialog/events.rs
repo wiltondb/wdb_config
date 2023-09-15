@@ -14,6 +14,12 @@ impl ui::Events<SettingChangeDialogControls> for SettingChangeDialogEvents {
             .handler(SettingChangeDialog::close)
             .build(&mut self.events)?;
         ui::event_builder()
+            .control(&c.window)
+            .event(nwg::Event::OnResizeEnd)
+            .handler(SettingChangeDialog::on_resize)
+            .build(&mut self.events)?;
+
+        ui::event_builder()
             .control(&c.copy_clipboard_button)
             .event(nwg::Event::OnButtonClick)
             .handler(SettingChangeDialog::copy_to_clipboard)

@@ -14,6 +14,12 @@ impl ui::Events<ConnectCheckDialogControls> for ConnectCheckDialogEvents {
             .handler(ConnectCheckDialog::close)
             .build(&mut self.events)?;
         ui::event_builder()
+            .control(&c.window)
+            .event(nwg::Event::OnResizeEnd)
+            .handler(ConnectCheckDialog::on_resize)
+            .build(&mut self.events)?;
+
+        ui::event_builder()
             .control(&c.copy_clipboard_button)
             .event(nwg::Event::OnButtonClick)
             .handler(ConnectCheckDialog::copy_to_clipboard)

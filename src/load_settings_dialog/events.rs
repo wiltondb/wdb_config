@@ -13,7 +13,12 @@ impl ui::Events<LoadSettingsDialogControls> for LoadSettingsDialogEvents {
             .event(nwg::Event::OnWindowClose)
             .handler(LoadSettingsDialog::close)
             .build(&mut self.events)?;
-        
+        ui::event_builder()
+            .control(&c.window)
+            .event(nwg::Event::OnResizeEnd)
+            .handler(LoadSettingsDialog::on_resize)
+            .build(&mut self.events)?;
+
         ui::event_builder()
             .control(&c.copy_clipboard_button)
             .event(nwg::Event::OnButtonClick)

@@ -131,4 +131,18 @@ impl ui::Controls for ConnectDialogControls {
 
         Ok(())
     }
+
+    fn update_tab_order(&self) {
+        ui::tab_order_builder()
+            .control(&self.hostname_input)
+            .control(&self.port_input)
+            .control(&self.username_input)
+            .control(&self.password_input)
+            .control(&self.enable_tls_checkbox)
+            .control(&self.accept_invalid_tls_checkbox)
+            .control(&self.test_button)
+            .control(&self.load_button)
+            .control(&self.cancel_button)
+            .build();
+    }
 }
