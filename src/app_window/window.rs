@@ -51,6 +51,9 @@ impl AppWindow {
         } else {
             self.pg_conn_config.hostname = String::from("localhost");
             self.pg_conn_config.port = 5432;
+            self.pg_conn_config.username = String::from("wilton");
+            self.pg_conn_config.enable_tls = true;
+            self.pg_conn_config.accept_invalid_tls = true;
             self.set_status_bar_dbconn_label("none");
             self.open_connect_dialog(nwg::EventData::NoData);
         }
