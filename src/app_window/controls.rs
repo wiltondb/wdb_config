@@ -112,10 +112,15 @@ impl ui::Controls for AppWindowControls {
             .font(Some(&self.font_normal))
             .collection(vec!(
                 "All Settings".to_string(),
-                setting_groups::NETWORKING.to_string(),
+                setting_groups::AUTOVACUUM.to_string(),
+                setting_groups::ESCAPE_HATCHES.to_string(),
+                setting_groups::LOCALE.to_string(),
                 setting_groups::LOGGING.to_string(),
                 setting_groups::MEMORY.to_string(),
-                setting_groups::ESCAPE_HATCHES.to_string(),
+                setting_groups::MONITORING.to_string(),
+                setting_groups::NETWORKING.to_string(),
+                setting_groups::PARALLEL.to_string(),
+                setting_groups::SSL.to_string(),
             ))
             .selected_index(Some(0))
             .build(&mut self.filter_combo)?;

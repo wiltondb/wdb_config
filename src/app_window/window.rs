@@ -30,10 +30,15 @@ pub struct AppWindow {
     pg_conn_config: PgConnConfig,
     settings: Vec<SettingRecord>,
 
-    networking_settings: HashSet<String>,
+    autovacuum_settings: HashSet<String>,
+    escape_hatch_settings: HashSet<String>,
+    locale_settings: HashSet<String>,
     logging_settings: HashSet<String>,
     memory_settings: HashSet<String>,
-    escape_hatch_settings: HashSet<String>,
+    monitoring_settings: HashSet<String>,
+    networking_settings: HashSet<String>,
+    parallel_settings: HashSet<String>,
+    ssl_settings: HashSet<String>,
 
     about_dialog_join_handle: ui::PopupJoinHandle<()>,
     connect_dialog_join_handle: ui::PopupJoinHandle<ConnectDialogResult>,
@@ -48,10 +53,15 @@ impl AppWindow {
     }
 
     pub(super) fn init(&mut self) {
-        self.networking_settings = setting_groups::networking();
+        self.autovacuum_settings = setting_groups::autovacuum();
+        self.escape_hatch_settings = setting_groups::escape_hatches();
+        self.locale_settings = setting_groups::locale();
         self.logging_settings = setting_groups::logging();
         self.memory_settings = setting_groups::memory();
-        self.escape_hatch_settings = setting_groups::escape_hatches();
+        self.monitoring_settings = setting_groups::monitoring();
+        self.networking_settings = setting_groups::networking();
+        self.parallel_settings = setting_groups::parallel();
+        self.ssl_settings = setting_groups::ssl();
 
         let cmd_args = Self::get_cmd_args();
         if 2 == cmd_args.len() && "--postinstall" == cmd_args[1] {
@@ -239,14 +249,24 @@ impl AppWindow {
         if filter_group_idx > 0 {
             let group_name = &filter_group_names[filter_group_idx];
             let empty = HashSet::<String>::new();
-            let group = if setting_groups::NETWORKING == group_name {
-                &self.networking_settings
+            let group = if setting_groups::AUTOVACUUM == group_name {
+                &self.autovacuum_settings
+            } else if setting_groups::ESCAPE_HATCHES == group_name {
+                &self.escape_hatch_settings
+            } else if setting_groups::LOCALE == group_name {
+                &self.locale_settings
             } else if setting_groups::LOGGING == group_name {
                 &self.logging_settings
             } else if setting_groups::MEMORY == group_name {
                 &self.memory_settings
-            } else if setting_groups::ESCAPE_HATCHES == group_name {
-                &self.escape_hatch_settings
+            } else if setting_groups::MONITORING == group_name {
+                &self.monitoring_settings
+            } else if setting_groups::NETWORKING == group_name {
+                &self.networking_settings
+            } else if setting_groups::PARALLEL == group_name {
+                &self.parallel_settings
+            } else if setting_groups::SSL == group_name {
+                &self.ssl_settings
             } else {
                 &empty
             };

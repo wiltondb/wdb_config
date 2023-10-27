@@ -22,20 +22,77 @@ fn to_hash_set(list: Vec<&str>) -> HashSet<String> {
         .collect()
 }
 
-pub(super) const NETWORKING: &str = "Networking Only";
-pub(super) fn networking() -> HashSet<String> {
+pub(super) const AUTOVACUUM: &str = "Autovacuum Only";
+pub(super) fn autovacuum() -> HashSet<String> {
     to_hash_set(vec!(
-        "listen_addresses",
-        "port",
-        "babelfishpg_tds.port",
-        "tcp_keepalives_idle",
-        "tcp_keepalives_interval",
-        "tcp_keepalives_count",
-        "tcp_user_timeout",
-        "client_connection_check_interval",
+        "autovacuum",
+        "autovacuum_max_workers",
+        "autovacuum_naptime",
+        "autovacuum_vacuum_threshold",
+        "autovacuum_vacuum_insert_threshold",
+        "autovacuum_analyze_threshold",
+        "autovacuum_vacuum_scale_factor",
+        "autovacuum_vacuum_insert_scale_factor",
+        "autovacuum_analyze_scale_factor",
+        "autovacuum_freeze_max_age",
+        "autovacuum_multixact_freeze_max_age",
+        "autovacuum_vacuum_cost_delay",
+        "autovacuum_vacuum_cost_limit",
     ))
 }
 
+pub(super) const ESCAPE_HATCHES: &str = "Escape Hatches";
+pub(super) fn escape_hatches() -> HashSet<String> {
+    to_hash_set(vec!(
+        "babelfishpg_tsql.escape_hatch_checkpoint",
+        "babelfishpg_tsql.escape_hatch_constraint_name_for_default",
+        "babelfishpg_tsql.escape_hatch_database_misc_options",
+        "babelfishpg_tsql.escape_hatch_for_replication",
+        "babelfishpg_tsql.escape_hatch_fulltext",
+        "babelfishpg_tsql.escape_hatch_ignore_dup_key",
+        "babelfishpg_tsql.escape_hatch_index_clustering",
+        "babelfishpg_tsql.escape_hatch_index_columnstore",
+        "babelfishpg_tsql.escape_hatch_join_hints",
+        "babelfishpg_tsql.escape_hatch_language_non_english",
+        "babelfishpg_tsql.escape_hatch_login_hashed_password",
+        "babelfishpg_tsql.escape_hatch_login_misc_options",
+        "babelfishpg_tsql.escape_hatch_login_old_password",
+        "babelfishpg_tsql.escape_hatch_login_password_must_change",
+        "babelfishpg_tsql.escape_hatch_login_password_unlock",
+        "babelfishpg_tsql.escape_hatch_nocheck_add_constraint",
+        "babelfishpg_tsql.escape_hatch_nocheck_existing_constraint",
+        "babelfishpg_tsql.escape_hatch_query_hints",
+        "babelfishpg_tsql.escape_hatch_rowguidcol_column",
+        "babelfishpg_tsql.escape_hatch_rowversion",
+        "babelfishpg_tsql.escape_hatch_schemabinding_function",
+        "babelfishpg_tsql.escape_hatch_schemabinding_procedure",
+        "babelfishpg_tsql.escape_hatch_schemabinding_trigger",
+        "babelfishpg_tsql.escape_hatch_schemabinding_view",
+        "babelfishpg_tsql.escape_hatch_session_settings",
+        "babelfishpg_tsql.escape_hatch_showplan_all",
+        "babelfishpg_tsql.escape_hatch_storage_on_partition",
+        "babelfishpg_tsql.escape_hatch_storage_options",
+        "babelfishpg_tsql.escape_hatch_table_hints",
+        "babelfishpg_tsql.escape_hatch_unique_constraint",
+    ))
+}
+
+pub(super) const LOCALE: &str = "Locale Only";
+pub(super) fn locale() -> HashSet<String> {
+    to_hash_set(vec!(
+        "datestyle",
+        "intervalstyle",
+        "timezone",
+        "timezone_abbreviations",
+        "extra_float_digits",
+        "client_encoding",
+        "lc_messages",
+        "lc_monetary",
+        "lc_numeric",
+        "lc_time",
+        "default_text_search_config",
+    ))
+}
 
 pub(super) const LOGGING: &str = "Logging Only";
 pub(super) fn logging() -> HashSet<String> {
@@ -103,38 +160,69 @@ pub(super) fn memory() -> HashSet<String> {
     ))
 }
 
-pub(super) const ESCAPE_HATCHES: &str = "Escape Hatches";
-pub(super) fn escape_hatches() -> HashSet<String> {
+pub(super) const MONITORING: &str = "Monitoring Only";
+pub(super) fn monitoring() -> HashSet<String> {
     to_hash_set(vec!(
-        "babelfishpg_tsql.escape_hatch_checkpoint",
-        "babelfishpg_tsql.escape_hatch_constraint_name_for_default",
-        "babelfishpg_tsql.escape_hatch_database_misc_options",
-        "babelfishpg_tsql.escape_hatch_for_replication",
-        "babelfishpg_tsql.escape_hatch_fulltext",
-        "babelfishpg_tsql.escape_hatch_ignore_dup_key",
-        "babelfishpg_tsql.escape_hatch_index_clustering",
-        "babelfishpg_tsql.escape_hatch_index_columnstore",
-        "babelfishpg_tsql.escape_hatch_join_hints",
-        "babelfishpg_tsql.escape_hatch_language_non_english",
-        "babelfishpg_tsql.escape_hatch_login_hashed_password",
-        "babelfishpg_tsql.escape_hatch_login_misc_options",
-        "babelfishpg_tsql.escape_hatch_login_old_password",
-        "babelfishpg_tsql.escape_hatch_login_password_must_change",
-        "babelfishpg_tsql.escape_hatch_login_password_unlock",
-        "babelfishpg_tsql.escape_hatch_nocheck_add_constraint",
-        "babelfishpg_tsql.escape_hatch_nocheck_existing_constraint",
-        "babelfishpg_tsql.escape_hatch_query_hints",
-        "babelfishpg_tsql.escape_hatch_rowguidcol_column",
-        "babelfishpg_tsql.escape_hatch_rowversion",
-        "babelfishpg_tsql.escape_hatch_schemabinding_function",
-        "babelfishpg_tsql.escape_hatch_schemabinding_procedure",
-        "babelfishpg_tsql.escape_hatch_schemabinding_trigger",
-        "babelfishpg_tsql.escape_hatch_schemabinding_view",
-        "babelfishpg_tsql.escape_hatch_session_settings",
-        "babelfishpg_tsql.escape_hatch_showplan_all",
-        "babelfishpg_tsql.escape_hatch_storage_on_partition",
-        "babelfishpg_tsql.escape_hatch_storage_options",
-        "babelfishpg_tsql.escape_hatch_table_hints",
-        "babelfishpg_tsql.escape_hatch_unique_constraint",
+        "track_activities",
+        "track_activity_query_size",
+        "track_counts",
+        "track_io_timing",
+        "track_wal_io_timing",
+        "track_functions",
+        "stats_fetch_consistency",
+        "compute_query_id",
+        "log_statement_stats",
+        "log_parser_stats",
+        "log_planner_stats",
+        "log_executor_stats",
+    ))
+}
+
+pub(super) const NETWORKING: &str = "Networking Only";
+pub(super) fn networking() -> HashSet<String> {
+    to_hash_set(vec!(
+        "listen_addresses",
+        "port",
+        "babelfishpg_tds.port",
+        "tcp_keepalives_idle",
+        "tcp_keepalives_interval",
+        "tcp_keepalives_count",
+        "tcp_user_timeout",
+        "client_connection_check_interval",
+    ))
+}
+
+pub(super) const PARALLEL: &str = "Parallel Only";
+pub(super) fn parallel() -> HashSet<String> {
+    to_hash_set(vec!(
+        "backend_flush_after",
+        "effective_io_concurrency",
+        "maintenance_io_concurrency",
+        "max_worker_processes",
+        "max_parallel_workers_per_gather",
+        "max_parallel_maintenance_workers",
+        "max_parallel_workers",
+        "parallel_leader_participation",
+        "old_snapshot_threshold",
+    ))
+}
+
+pub(super) const SSL: &str = "SSL Only";
+pub(super) fn ssl() -> HashSet<String> {
+    to_hash_set(vec!(
+        "ssl",
+        "ssl_ca_file",
+        "ssl_cert_file",
+        "ssl_crl_file",
+        "ssl_crl_dir",
+        "ssl_key_file",
+        "ssl_ciphers",
+        "ssl_prefer_server_ciphers",
+        "ssl_ecdh_curve",
+        "ssl_min_protocol_version",
+        "ssl_max_protocol_version",
+        "ssl_dh_params_file",
+        "ssl_passphrase_command",
+        "ssl_passphrase_command_supports_reload",
     ))
 }
