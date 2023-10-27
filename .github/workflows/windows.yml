@@ -1,0 +1,21 @@
+name: "Windows"
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: clone-repository
+      uses: actions/checkout@v3
+    - name: build
+      run: cargo build --release
+    - name: upload-dist
+      if: true
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: target/release/wdb_config.exe
+        retention-days: 1
