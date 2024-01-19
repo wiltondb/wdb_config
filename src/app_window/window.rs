@@ -69,6 +69,7 @@ impl AppWindow {
             self.pg_conn_config.port = 5432;
             self.pg_conn_config.username = String::from("wilton");
             self.pg_conn_config.password = String::from("wilton");
+            self.pg_conn_config.connect_db = String::from("wilton");
             self.pg_conn_config.enable_tls = true;
             self.pg_conn_config.accept_invalid_tls = true;
             self.set_status_bar_dbconn_label("localhost:5432");
@@ -77,6 +78,7 @@ impl AppWindow {
             self.pg_conn_config.hostname = String::from("localhost");
             self.pg_conn_config.port = 5432;
             self.pg_conn_config.username = String::from("wilton");
+            self.pg_conn_config.connect_db = String::from("wilton");
             self.pg_conn_config.enable_tls = true;
             self.pg_conn_config.accept_invalid_tls = true;
             self.set_status_bar_dbconn_label("none");

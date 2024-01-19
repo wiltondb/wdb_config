@@ -30,6 +30,7 @@ pub struct PgConnConfig {
     pub port: u16,
     pub username: String,
     pub password: String,
+    pub connect_db: String,
     pub enable_tls: bool,
     pub accept_invalid_tls: bool,
 }
@@ -41,6 +42,7 @@ impl PgConnConfig {
             .port(self.port)
             .user(&self.username)
             .password(&self.password)
+            .dbname(&self.connect_db)
             .connect_timeout(Duration::from_secs(10))
             .clone();
 
