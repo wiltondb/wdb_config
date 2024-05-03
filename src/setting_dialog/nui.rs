@@ -26,7 +26,7 @@ pub(super) struct SettingDialogNui {
 }
 
 impl SettingDialogNui {
-    pub(super) fn result(&mut self) -> () {
+    pub(super) fn result(&mut self) -> SettingDialogResult {
         self.inner.borrow_mut().result()
     }
 }

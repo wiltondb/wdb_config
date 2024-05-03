@@ -38,12 +38,13 @@ pub struct AppWindow {
     monitoring_settings: HashSet<String>,
     networking_settings: HashSet<String>,
     parallel_settings: HashSet<String>,
+    tds_settings: HashSet<String>,
     ssl_settings: HashSet<String>,
 
     about_dialog_join_handle: ui::PopupJoinHandle<()>,
     connect_dialog_join_handle: ui::PopupJoinHandle<ConnectDialogResult>,
     load_settings_dialog_join_handle: ui::PopupJoinHandle<LoadSettingsDialogResult>,
-    setting_dialog_join_handle: ui::PopupJoinHandle<()>,
+    setting_dialog_join_handle: ui::PopupJoinHandle<SettingDialogResult>,
 }
 
 impl AppWindow {
@@ -61,6 +62,7 @@ impl AppWindow {
         self.monitoring_settings = setting_groups::monitoring();
         self.networking_settings = setting_groups::networking();
         self.parallel_settings = setting_groups::parallel();
+        self.tds_settings = setting_groups::tds();
         self.ssl_settings = setting_groups::ssl();
 
         let cmd_args = Self::get_cmd_args();
@@ -165,14 +167,22 @@ impl AppWindow {
             name, setting, description
         };
         self.c.window.set_enabled(false);
-        let args = SettingDialogArgs::new(&self.c.setting_notice, self.pg_conn_config.clone(), st);
+        let args = SettingDialogArgs::new(&self.c.setting_notice, self.pg_conn_config.clone(), row_idx, st);
         self.setting_dialog_join_handle = SettingDialog::popup(args);
     }
 
     pub(super) fn await_setting_dialog(&mut self, _: nwg::EventData) {
         self.c.window.set_enabled(true);
         self.c.setting_notice.receive();
-        let _ = self.setting_dialog_join_handle.join();
+        let res = self.setting_dialog_join_handle.join();
+        if res.success {
+            self.c.settings_view.update_item(res.row_idx, nwg::InsertListViewItem {
+                index: Some(res.row_idx as i32),
+                column_index: 1,
+                text: Some(res.effective_value.clone()),
+                image: None
+            });
+        }
         self.c.filter_input.set_enabled(true);
     }
 
@@ -267,6 +277,8 @@ impl AppWindow {
                 &self.networking_settings
             } else if setting_groups::PARALLEL == group_name {
                 &self.parallel_settings
+            } else if setting_groups::TDS == group_name {
+                &self.tds_settings
             } else if setting_groups::SSL == group_name {
                 &self.ssl_settings
             } else {

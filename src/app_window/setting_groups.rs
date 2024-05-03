@@ -207,6 +207,27 @@ pub(super) fn parallel() -> HashSet<String> {
     ))
 }
 
+pub(super) const TDS: &str = "TDS Only";
+pub(super) fn tds() -> HashSet<String> {
+    to_hash_set(vec!(
+        "babelfishpg_tds.default_server_name",
+        "babelfishpg_tds.listen_addresses",
+        "babelfishpg_tds.port",
+        "babelfishpg_tds.product_version",
+        "babelfishpg_tds.tds_debug_log_level",
+        "babelfishpg_tds.tds_default_numeric_precision",
+        "babelfishpg_tds.tds_default_numeric_scale",
+        "babelfishpg_tds.tds_default_packet_size",
+        "babelfishpg_tds.tds_default_protocol_version",
+        "babelfishpg_tds.tds_ssl_encrypt",
+        "babelfishpg_tds.tds_ssl_max_protocol_version",
+        "babelfishpg_tds.tds_ssl_min_protocol_version",
+        "babelfishpg_tds.unix_socket_directories",
+        "babelfishpg_tds.unix_socket_group",
+        "babelfishpg_tds.unix_socket_permissions",
+    ))
+}
+
 pub(super) const SSL: &str = "SSL Only";
 pub(super) fn ssl() -> HashSet<String> {
     to_hash_set(vec!(

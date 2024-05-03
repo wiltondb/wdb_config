@@ -120,6 +120,7 @@ impl ui::Controls for AppWindowControls {
                 setting_groups::MONITORING.to_string(),
                 setting_groups::NETWORKING.to_string(),
                 setting_groups::PARALLEL.to_string(),
+                setting_groups::TDS.to_string(),
                 setting_groups::SSL.to_string(),
             ))
             .selected_index(Some(0))

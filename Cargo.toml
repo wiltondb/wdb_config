@@ -1,6 +1,6 @@
 [package]
 name = "wdb_config"
-version = "1.0.1"
+version = "1.0.2"
 authors = ["alex@staticlibs.net"]
 edition = "2018"
 

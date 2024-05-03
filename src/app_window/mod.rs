@@ -42,6 +42,7 @@ use load_settings_dialog::LoadSettingsDialogArgs;
 use load_settings_dialog::LoadSettingsDialogResult;
 use setting_dialog::SettingDialog;
 use setting_dialog::SettingDialogArgs;
+use setting_dialog::SettingDialogResult;
 
 pub(self) use controls::AppWindowControls;
 pub(self) use events::AppWindowEvents;

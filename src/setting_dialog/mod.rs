@@ -20,6 +20,7 @@ mod dialog;
 mod events;
 mod layout;
 mod nui;
+mod result;
 
 use std::thread;
 
@@ -45,3 +46,4 @@ pub(super) use dialog::SettingDialog;
 use controls::SettingDialogControls;
 use events::SettingDialogEvents;
 use layout::SettingDialogLayout;
+pub use result::SettingDialogResult;

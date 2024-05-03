@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, WiltonDB Software
+ * Copyright 2024, WiltonDB Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,27 @@
  * limitations under the License.
  */
 
-use super::*;
-
-#[derive(Default)]
-pub struct SettingDialogArgs {
-    notice_sender:  ui::SyncNoticeSender,
-    pub(super) pg_conn_config: PgConnConfig,
-    pub(super) row_idx: usize,
-    pub(super) setting: SettingRecord,
+#[derive(Default, Clone)]
+pub struct SettingDialogResult {
+    pub success: bool,
+    pub row_idx: usize,
+    pub effective_value: String,
 }
 
-impl SettingDialogArgs {
-    pub fn new(notice: &ui::SyncNotice, pg_conn_config: PgConnConfig, row_idx: usize, setting: SettingRecord) -> Self {
+impl SettingDialogResult {
+    pub(super) fn success(row_idx: usize, effective_value: String) -> Self {
         Self {
-            notice_sender: notice.sender(),
-            pg_conn_config,
+            success: true,
             row_idx,
-            setting
+            effective_value
         }
     }
-}
 
-impl ui::PopupArgs for SettingDialogArgs {
-    fn notify_parent(&self) {
-        self.notice_sender.send()
+    pub(super) fn failure() -> Self {
+        Self {
+            success: false,
+            row_idx: 0,
+            effective_value: String::new()
+        }
     }
 }

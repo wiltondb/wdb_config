@@ -22,6 +22,7 @@ pub struct SettingDialog {
     pub(super) c: SettingDialogControls,
 
     args: SettingDialogArgs,
+    result: SettingDialogResult,
     change_join_handle: ui::PopupJoinHandle<SettingChangeDialogResult>,
 }
 
@@ -41,6 +42,9 @@ impl SettingDialog {
         let res = self.change_join_handle.join();
         if res.success {
             self.c.current_value_input.set_text(&res.effective_value);
+            self.result = SettingDialogResult::success(self.args.row_idx, res.effective_value.clone());
+        } else {
+            self.result = SettingDialogResult::failure();
         }
         ui::shake_window(&self.c.window);
         self.c.update_tab_order();
@@ -55,8 +59,8 @@ impl SettingDialog {
     }
 }
 
-impl ui::PopupDialog<SettingDialogArgs, ()> for SettingDialog {
-    fn popup(args: SettingDialogArgs) -> PopupJoinHandle<()> {
+impl ui::PopupDialog<SettingDialogArgs, SettingDialogResult> for SettingDialog {
+    fn popup(args: SettingDialogArgs) -> PopupJoinHandle<SettingDialogResult> {
         let join_handle = thread::spawn(move || {
             let data = Self {
                 args,
@@ -79,8 +83,8 @@ impl ui::PopupDialog<SettingDialogArgs, ()> for SettingDialog {
         ui::shake_window(&self.c.window);
     }
 
-    fn result(&mut self) -> () {
-        ()
+    fn result(&mut self) -> SettingDialogResult {
+        self.result.clone()
     }
 
     fn close(&mut self, _: nwg::EventData) {
