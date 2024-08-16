@@ -39,7 +39,13 @@ impl ui::Events<ConnectDialogControls> for ConnectDialogEvents {
             .event(nwg::Event::OnTextInput)
             .handler(ConnectDialog::on_port_input_changed)
             .build(&mut self.events)?;
-        
+
+        ui::event_builder()
+            .control(&c.use_pgpass_checkbox)
+            .event(nwg::Event::OnButtonClick)
+            .handler(ConnectDialog::on_use_pgpass_checkbox_changed)
+            .build(&mut self.events)?;
+
         ui::event_builder()
             .control(&c.enable_tls_checkbox)
             .event(nwg::Event::OnButtonClick)
